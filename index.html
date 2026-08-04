@@ -1,0 +1,1827 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>R-Proposta Fácil</title>
+<style>
+  :root{--bg:#0b1220;--panel:#111827;--card:#0f172a;--border:rgba(255,255,255,.10);--ink:#e5e7eb;--muted:#9ca3af;--accent:#ff7a00;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(180deg,#0b1220 0%,#0b1220 60%,#0a1020 100%);color:var(--ink);}
+  .app{min-height:100vh;display:flex;}
+  .sidebar{width:320px;max-width:320px;background:rgba(17,24,39,.95);border-right:1px solid var(--border);padding:14px;position:sticky;top:0;align-self:flex-start;height:100vh;overflow:auto;}
+  .brand{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.04);position:relative;overflow:hidden;}
+
+  .brand .title{font-weight:900;letter-spacing:.3px;}
+  .brand .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  
+  .brand::before{display:none !important;}
+  .brand > *{position:relative;z-index:1;}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-size:12px;color:var(--muted);}
+  .brand .pill{display:none !important;}
+
+  .menu{margin-top:12px;display:flex;flex-direction:column;gap:10px;}
+  .item{border:1px solid var(--border);border-radius:14px;padding:12px;background:rgba(255,255,255,.03);cursor:pointer;transition:transform .06s ease,background .12s ease,border-color .12s ease;user-select:none;}
+  .item:hover{transform:translateY(-1px);background:rgba(255,255,255,.05);}
+  .item.active{background:rgba(255,122,0,.12);border-color:rgba(255,122,0,.45);}
+  .item .k{font-weight:900;}
+  .item .d{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.25;}
+  .masterbtn{
+  width:100%;
+  margin-top:14px;
+  padding:18px 14px;
+  border-radius:16px;
+  border:2px solid rgba(255,122,0,.65);
+  background:rgba(255,122,0,.14);
+  color:#ffb26b;
+  font-weight:900;
+  font-size:22px;
+  letter-spacing:.4px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+  .masterbtn:hover{background:rgba(255,122,0,.18);}
+  .masterbtn:disabled{opacity:.55;cursor:not-allowed;}
+  .foot{display:none;}
+  .content{flex:1;padding:14px;display:flex;flex-direction:column;height:100vh;}
+  .topbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.03);}
+  .crumb{font-weight:900;}
+  .help{font-size:12px;color:var(--muted);}
+  .instbar{margin-top:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.03);}
+  .instbtn{border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--ink);border-radius:999px;padding:10px 12px;font-weight:900;cursor:pointer;user-select:none;}
+  .instbtn.active{background:rgba(255,122,0,.18);border-color:rgba(255,122,0,.5);}
+  .instbtn:disabled{opacity:.45;cursor:not-allowed;}
+  .instbtn.add{background:rgba(255,122,0,.9);border-color:rgba(255,122,0,.9);color:#0b1220;}
+  .instbtn.danger{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);color:#fecaca;}
+  .stage{margin-top:12px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.02);overflow:hidden;flex:1;min-height:520px;}
+  .framewrap{width:100%;height:100%;display:none;}
+  .framewrap.active{display:block;}
+  iframe{width:100%;height:100%;border:0;background:#fff;}
+  .modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;z-index:99999;padding:18px;}
+  .modal{width:min(920px,96vw);max-height:88vh;overflow:auto;background:rgba(17,24,39,.98);border:1px solid rgba(255,255,255,.14);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.55);padding:16px 16px 14px;}
+  .modal h2{margin:0 0 8px;font-size:18px;}
+  .modal .small{color:var(--muted);font-size:12px;margin-bottom:12px;line-height:1.35;}
+  .modal .list{border-top:1px solid rgba(255,255,255,.12);margin-top:10px;padding-top:10px;}
+  .modal .grp{margin:10px 0;padding:10px;border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.03);}
+  .modal .grp .t{font-weight:900;margin-bottom:6px;}
+  .modal ul{margin:0;padding-left:18px;color:#fde68a;}
+  .modal .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px;}
+  .modal .closeBtn{padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:var(--ink);font-weight:900;cursor:pointer;}
+  @media (max-width:980px){.app{flex-direction:column;}.sidebar{width:100%;max-width:none;height:auto;position:relative;}.stage{height:72vh;}}
+
+  /* Anexos */
+  .attachBox{margin-top:10px;padding:12px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.03);}
+  .attachTitle{font-weight:900;margin:0 0 8px 0;}
+  .attachBtn{width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(34,197,94,.22);color:#bbf7d0;font-weight:900;cursor:pointer;}
+  .attachBtn:hover{background:rgba(34,197,94,.28);}
+  .attachActions{display:flex;gap:8px;}
+  .attachActions .attachBtn{width:auto;flex:1;}
+  .prepBtn{background:rgba(255,122,0,.18);color:#ffd7b0;border-color:rgba(255,255,255,.18);}
+  .prepBtn:hover{background:rgba(255,122,0,.24);}
+  .prepBtn[disabled]{opacity:.65;cursor:not-allowed;}
+  .attachActions .prepBtn{width:46px;flex:0 0 46px;padding:0;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;}
+  .prepBtn.is-busy{animation:spin 0.9s linear infinite;}
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
+
+
+  .attachList{margin-top:10px;display:flex;flex-direction:column;gap:8px;}
+  .attachRow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);}
+  .attachName{flex:1;min-width:0;font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .attachMeta{font-size:12px;color:var(--muted);margin-left:6px;white-space:nowrap;}
+  .attachRm{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fecaca;border-radius:10px;padding:6px 10px;font-weight:900;cursor:pointer;}
+  .attachRm:hover{background:rgba(255,255,255,.10);}
+  .attachNote{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.35;}
+
+
+
+/* ===== v3.1 MOBILE: navegação responsiva e segura para toque ===== */
+.mobileTopbar,.mobileBottomBar,.mobileBackdrop{display:none;}
+.mobileTopbar button,.mobileBottomBar button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+
+@media screen and (max-width: 960px){
+  :root{--mobile-top:60px;--mobile-bottom:72px;}
+  html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;}
+  body{min-height:100dvh;background:#0b1220;}
+  .app{display:block;height:100dvh;min-height:0;overflow:hidden;}
+
+  .mobileTopbar{
+    position:fixed;inset:0 0 auto 0;height:var(--mobile-top);z-index:10020;
+    display:flex;align-items:center;gap:10px;padding:8px max(10px,env(safe-area-inset-right)) 8px max(10px,env(safe-area-inset-left));
+    background:rgba(11,18,32,.98);border-bottom:1px solid var(--border);box-shadow:0 5px 18px rgba(0,0,0,.28);
+  }
+  .mobileMenuToggle{
+    flex:0 0 44px;width:44px;height:44px;border:1px solid rgba(255,255,255,.16);border-radius:12px;
+    background:rgba(255,255,255,.07);color:#fff;font-size:24px;font-weight:900;cursor:pointer;
+  }
+  .mobileHeading{min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .mobileHeading strong{font-size:14px;line-height:1.1;white-space:nowrap;}
+  .mobileHeading span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 78px);}
+
+  .mobileBackdrop{
+    display:block;position:fixed;inset:0;z-index:10025;background:rgba(0,0,0,.62);
+    opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease;
+  }
+  body.mobile-menu-open .mobileBackdrop{opacity:1;visibility:visible;}
+
+  .sidebar{
+    position:fixed;z-index:10030;left:0;top:0;bottom:0;width:min(88vw,350px);max-width:none;height:100dvh;
+    padding:calc(12px + env(safe-area-inset-top)) 12px calc(18px + env(safe-area-inset-bottom));
+    border-right:1px solid rgba(255,255,255,.14);box-shadow:18px 0 40px rgba(0,0,0,.45);
+    transform:translate3d(-105%,0,0);transition:transform .22s ease;overflow-y:auto;overscroll-behavior:contain;
+  }
+  body.mobile-menu-open .sidebar{transform:translate3d(0,0,0);}
+  .brand{padding:12px;margin-bottom:10px;}
+  .brand .title{font-size:16px;}
+  .brand .sub{font-size:11px;}
+  .menu{gap:8px;margin-top:8px;}
+  .item{padding:12px;min-height:64px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;}
+  .item:hover{transform:none;}
+  .item .k{font-size:13px;line-height:1.2;}
+  .item .d{font-size:11px;}
+  .sidebar>.masterbtn{display:none;}
+  .attachBox{margin-top:12px;}
+  .attachBtn{min-height:46px;font-size:13px;}
+  .attachActions .prepBtn{height:46px;}
+
+  .content{
+    width:100%;height:100dvh;min-height:0;padding:var(--mobile-top) 0 calc(var(--mobile-bottom) + env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  .topbar{display:none;}
+  .instbar{
+    flex:0 0 auto;margin:0;padding:8px 10px;border:0;border-bottom:1px solid var(--border);border-radius:0;
+    flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:#111827;
+  }
+  .instbar::-webkit-scrollbar{display:none;}
+  .instbtn{flex:0 0 auto;min-height:42px;padding:9px 12px;font-size:12px;touch-action:manipulation;}
+  .stage{flex:1;min-height:0;height:auto;margin:0;border:0;border-radius:0;background:#f3f4f6;overflow:hidden;}
+  .framewrap,.framewrap.active{width:100%;height:100%;min-height:0;}
+  iframe{display:block;width:100%;height:100%;min-height:0;background:#f3f4f6;}
+
+  .mobileBottomBar{
+    position:fixed;z-index:10015;left:0;right:0;bottom:0;min-height:var(--mobile-bottom);
+    display:grid;grid-template-columns:72px minmax(0,1fr) minmax(0,1fr);gap:8px;
+    padding:8px max(8px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+    background:rgba(11,18,32,.98);border-top:1px solid var(--border);box-shadow:0 -6px 20px rgba(0,0,0,.28);
+  }
+  .mobileBottomBar button{
+    min-width:0;min-height:52px;border-radius:12px;border:1px solid rgba(255,255,255,.15);padding:7px 6px;
+    color:#fff;background:rgba(255,255,255,.07);font-size:11px;font-weight:900;line-height:1.1;cursor:pointer;
+  }
+  .mobileBottomBar .mobileDocsBtn{font-size:21px;}
+  .mobileBottomBar .mobileViewBtn{background:rgba(255,122,0,.16);border-color:rgba(255,122,0,.45);color:#ffd4ae;}
+  .mobileBottomBar .mobileDownloadBtn{background:#ff7a00;border-color:#ff7a00;color:#111827;}
+  .mobileBottomBar button:disabled{opacity:.55;cursor:not-allowed;}
+
+  .modalOverlay{padding:10px;align-items:flex-end;}
+  .modal{width:100%;max-height:88dvh;border-radius:18px 18px 10px 10px;padding:14px;}
+  .modal .actions{position:sticky;bottom:0;padding-top:10px;background:rgba(17,24,39,.98);}
+  .modal .closeBtn{width:100%;min-height:48px;}
+}
+
+@media (min-width:961px) and (max-width:1100px){
+  .sidebar{width:285px;max-width:285px;}
+  .content{padding:10px;}
+}
+
+</style>
+<!-- Geração do PDF final no navegador -->
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+
+<div class="mobileTopbar" aria-label="Barra móvel">
+  <button id="mobileMenuToggle" class="mobileMenuToggle" type="button" aria-label="Abrir documentos" aria-expanded="false">☰</button>
+  <div class="mobileHeading">
+    <strong>R-Proposta Fácil</strong>
+    <span id="mobileDocTitle">Carregando documento…</span>
+  </div>
+</div>
+<div id="mobileBackdrop" class="mobileBackdrop" aria-hidden="true"></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div>
+        <div class="title">R-Proposta Fácil</div>
+        <div class="sub">Desktop  • MOBILE</div>
+      </div>
+      <div class="pill" title="Persistência local">localStorage</div>
+    </div>
+
+    <div class="menu" id="menu"></div>
+<button id="viewUnifiedBtn" class="masterbtn" type="button">VER PROPOSTA</button>
+<button id="downloadUnifiedBtn" class="masterbtn" type="button">BAIXAR PROPOSTA</button>
+
+    <div class="attachBox">
+<div class="attachActions">
+<button id="attachBtn" class="attachBtn" type="button">ANEXAR ARQUIVOS</button>
+<button id="prepAttachBtn" class="prepBtn" type="button" title="Atualizar anexos (pré-renderizar)" aria-label="Atualizar anexos">⟳</button>
+</div>
+      <input id="attachInput" type="file" accept="application/pdf,image/*" multiple style="display:none"/>
+      <div id="attachList" class="attachList"></div>
+</div>
+
+
+    <div class="foot"></div>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <div class="crumb" id="crumb">—</div>
+      <div class="help" id="help">Selecione um documento no menu.</div>
+    </div>
+
+    <div class="instbar" id="instbar" style="display:none;"></div>
+
+    <div class="stage" id="stage"></div>
+  </main>
+</div>
+
+
+<div class="mobileBottomBar" aria-label="Ações da proposta">
+  <button id="mobileDocsBtn" class="mobileDocsBtn" type="button" aria-label="Abrir documentos">☰</button>
+  <button id="mobileViewBtn" class="mobileViewBtn" type="button">VER<br>PROPOSTA</button>
+  <button id="mobileDownloadBtn" class="mobileDownloadBtn" type="button">BAIXAR<br>PROPOSTA</button>
+</div>
+
+<div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <h2 id="modalTitle">Faltam campos obrigatórios</h2>
+    <div class="small">
+      Preencha os itens abaixo e tente novamente. (Os botões <b>VER PROPOSTA</b> e <b>BAIXAR PROPOSTA</b> só funcionam quando <b>tudo</b> estiver válido.)
+    </div>
+    <div class="list" id="modalList"></div>
+    <div class="actions">
+      <button class="closeBtn" id="modalCloseBtn" type="button">FECHAR</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const DOCS = [
+    { id:'proposta', title:'PROPOSTA COLETIVO POR ADESÃO', file:'PROPOSTA_COLETIVO_POR_ADESAO.html', min:1, max:1, desc:'Documento único (1/1).' },
+    { id:'carencia', title:'TERMO DE CARÊNCIA', file:'TERMO_DE_CARENCIA.html', min:1, max:5, desc:'Até 5 documentos (mín. 1).' },
+    { id:'carta',    title:'CARTA ANS', file:'CARTA_ANS.html', min:1, max:5, desc:'Até 5 documentos (mín. 1).' },
+    { id:'consent',  title:'TERMO DE CONSENTIMENTO', file:'TERMO_DE_CONSENTIMENTO.html', min:1, max:1, desc:'Documento único (1/1).' },
+    { id:'comprov',  title:'COMPROVANTE DE ADESÃO', file:'COMPROVANTE_ADESAO.html', min:1, max:1, desc:'Documento único (1/1).' },
+  ];
+
+  const LS_KEY = 'r_proposta_facil_v1_1';
+  const $ = (sel) => document.querySelector(sel);
+
+  function loadState(){
+    try{ const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; }
+    catch(e){ return null; }
+  }
+  function saveState(s){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(s)); }catch(e){}
+    try{ window.__unifiedState = s; }catch(e){}
+  }
+
+  const state = loadState() || {
+    counts: Object.fromEntries(DOCS.map(d => [d.id, d.min])),
+    activeDocId: DOCS[0].id,
+    activeInstIndex: Object.fromEntries(DOCS.map(d => [d.id, 1])),
+  };
+
+  for(const d of DOCS){
+    const c = Number(state.counts?.[d.id] ?? d.min);
+    state.counts[d.id] = Math.min(d.max, Math.max(d.min, isFinite(c)?c:d.min));
+    const a = Number(state.activeInstIndex?.[d.id] ?? 1);
+    state.activeInstIndex[d.id] = Math.min(state.counts[d.id], Math.max(1, isFinite(a)?a:1));
+  }
+  if(!DOCS.some(d => d.id === state.activeDocId)) state.activeDocId = DOCS[0].id;
+
+  // expõe o estado atual para outros patches (ex.: VISUALIZAR) sem depender de F5
+  try{ window.__unifiedState = state; }catch(e){}
+
+  const menu = $('#menu');
+  const stage = $('#stage');
+  const instbar = $('#instbar');
+  const frames = Object.create(null);
+
+  function buildMenu(){
+    menu.innerHTML = '';
+    DOCS.forEach((d, idx) => {
+      const el = document.createElement('div');
+      el.className = 'item';
+      el.dataset.doc = d.id;
+      el.innerHTML = '<div class="k">'+(idx+1)+'. '+d.title+'</div><div class="d">'+d.desc+'</div>';
+      el.addEventListener('click', () => activateDoc(d.id));
+      menu.appendChild(el);
+    });
+  }
+
+  function ensureFrames(docId){
+    const doc = DOCS.find(d => d.id === docId);
+    if(!doc) return;
+    if(!frames[docId]) frames[docId] = [];
+
+    for(let i=frames[docId].length + 1; i<=state.counts[docId]; i++){
+      const wrap = document.createElement('div');
+      wrap.className = 'framewrap';
+      wrap.dataset.doc = docId;
+      wrap.dataset.inst = String(i);
+
+      const iframe = document.createElement('iframe');
+      iframe.src = doc.file + '#inst=' + i + '&ts=' + Date.now();
+      iframe.addEventListener('load', () => {
+        try{
+          setTimeout(() => {
+            if(typeof window.__propostaMirrorV31Sync === 'function') window.__propostaMirrorV31Sync();
+          }, 120);
+        }catch(e){}
+      });
+      wrap.appendChild(iframe);
+
+      frames[docId].push(wrap);
+      stage.appendChild(wrap);
+    }
+  }
+
+  // Remove do DOM e do cache interno quaisquer iframes de instâncias acima do contador atual.
+  // Isso evita que o VISUALIZAR / SALVAR pegue instâncias “removidas” sem precisar dar F5.
+  function pruneFrames(docId){
+    const doc = DOCS.find(d => d.id === docId);
+    if(!doc) return;
+    if(!frames[docId]) frames[docId] = [];
+
+    // Primeiro, remove do array/cache
+    while(frames[docId].length > state.counts[docId]){
+      const wrap = frames[docId].pop();
+      try{ wrap && wrap.remove(); }catch(e){
+        try{ wrap && wrap.parentNode && wrap.parentNode.removeChild(wrap); }catch(e2){}
+      }
+    }
+
+    // Segundo, limpeza defensiva no DOM (caso algo tenha ficado órfão)
+    try{
+      stage.querySelectorAll('.framewrap[data-doc="'+docId+'"]').forEach(w=>{
+        const inst = parseInt(w.dataset.inst||'0',10);
+        if(inst > state.counts[docId]){
+          try{ w.remove(); }catch(e){ try{ w.parentNode && w.parentNode.removeChild(w); }catch(e2){} }
+        }
+      });
+    }catch(e){}
+  }
+
+  function setActiveWrap(docId, instIndex){
+    stage.querySelectorAll('.framewrap').forEach(w => w.classList.remove('active'));
+    ensureFrames(docId);
+    pruneFrames(docId);
+    const wrap = (frames[docId] || []).find(w => Number(w.dataset.inst) === instIndex);
+    if(wrap) wrap.classList.add('active');
+  }
+
+  function renderInstBar(docId){
+    const doc = DOCS.find(d => d.id === docId);
+    if(!doc) return;
+
+    if(doc.max === 1){
+      instbar.style.display = 'none';
+      instbar.innerHTML = '';
+      return;
+    }
+
+    instbar.style.display = 'flex';
+    instbar.innerHTML = '';
+
+    const label = document.createElement('div');
+    label.style.fontWeight = '900';
+    label.style.marginRight = '6px';
+    label.textContent = 'INSTÂNCIAS:';
+    instbar.appendChild(label);
+
+    for(let i=1; i<=state.counts[docId]; i++){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'instbtn' + (i === state.activeInstIndex[docId] ? ' active' : '');
+      b.textContent = String(i);
+      b.addEventListener('click', () => activateDoc(docId, i));
+      instbar.appendChild(b);
+    }
+
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'instbtn add';
+    add.textContent = '+ ADICIONAR';
+    add.disabled = state.counts[docId] >= doc.max;
+    add.addEventListener('click', () => {
+      if(state.counts[docId] >= doc.max) return;
+      state.counts[docId] += 1;
+      state.activeInstIndex[docId] = state.counts[docId];
+      saveState(state);
+      ensureFrames(docId);
+      activateDoc(docId, state.activeInstIndex[docId]);
+    });
+    instbar.appendChild(add);
+
+    const rem = document.createElement('button');
+    rem.type = 'button';
+    rem.className = 'instbtn danger';
+    rem.textContent = 'REMOVER ÚLTIMA';
+    rem.disabled = state.counts[docId] <= doc.min;
+    rem.addEventListener('click', () => {
+      if(state.counts[docId] <= doc.min) return;
+      state.counts[docId] -= 1;
+      state.activeInstIndex[docId] = Math.min(state.activeInstIndex[docId], state.counts[docId]);
+      saveState(state);
+      // Remove a instância “apagada” imediatamente (sem precisar recarregar a página)
+      pruneFrames(docId);
+      activateDoc(docId, state.activeInstIndex[docId]);
+    });
+    instbar.appendChild(rem);
+
+    const note = document.createElement('div');
+    note.style.marginLeft = 'auto';
+    note.style.fontSize = '12px';
+    note.style.color = 'var(--muted)';
+    note.textContent = `(${state.counts[docId]}/${doc.max})`;
+    instbar.appendChild(note);
+  }
+
+  function activateDoc(docId, instIndex){
+    const doc = DOCS.find(d => d.id === docId);
+    if(!doc) return;
+
+    state.activeDocId = docId;
+    if(doc.max === 1){
+      state.activeInstIndex[docId] = 1;
+    }else{
+      const idx = Number(instIndex ?? state.activeInstIndex[docId] ?? 1);
+      state.activeInstIndex[docId] = Math.min(state.counts[docId], Math.max(1, idx));
+    }
+    saveState(state);
+
+    menu.querySelectorAll('.item').forEach(el => {
+      el.classList.toggle('active', el.dataset.doc === docId);
+    });
+
+    $('#crumb').textContent = doc.title + (doc.max > 1 ? (' • Instância ' + state.activeInstIndex[docId]) : '');
+    $('#help').textContent = (doc.max > 1)
+      ? 'Use + ADICIONAR para criar novas instâncias (até 5). Cada instância é independente.'
+      : 'Documento único.';
+
+    renderInstBar(docId);
+    setActiveWrap(docId, state.activeInstIndex[docId]);
+  }
+
+
+  // V3.2 - espelhamento em tempo real da PROPOSTA COLETIVO POR ADESÃO
+  // Fonte: proposta. Destinos: termo de consentimento e comprovante de adesão.
+  const propostaMirrorV31 = {
+    data: null,
+    lastAt: 0
+  };
+
+  function postMirrorToDocV31(docId){
+    try{
+      if(!propostaMirrorV31.data) return;
+      const wraps = frames[docId] || [];
+      wraps.forEach(w => {
+        const iframe = w && w.querySelector ? w.querySelector('iframe') : null;
+        if(iframe && iframe.contentWindow){
+          iframe.contentWindow.postMessage({
+            __mirrorV31: true,
+            type: 'APPLY_PROPOSTA_MIRROR_V31',
+            data: propostaMirrorV31.data
+          }, '*');
+        }
+      });
+    }catch(e){}
+  }
+
+  function requestPropostaMirrorV31(){
+    try{
+      const wraps = frames.proposta || [];
+      wraps.forEach(w => {
+        const iframe = w && w.querySelector ? w.querySelector('iframe') : null;
+        if(iframe && iframe.contentWindow){
+          iframe.contentWindow.postMessage({__mirrorV31:true, type:'REQUEST_PROPOSTA_MIRROR_V31'}, '*');
+        }
+      });
+    }catch(e){}
+  }
+
+  function syncPropostaMirrorV31(){
+    requestPropostaMirrorV31();
+    postMirrorToDocV31('consent');
+    postMirrorToDocV31('comprov');
+  }
+  window.__propostaMirrorV31Sync = syncPropostaMirrorV31;
+
+  window.addEventListener('message', function(ev){
+    const msg = ev.data;
+    if(!msg || typeof msg !== 'object' || msg.__mirrorV31 !== true) return;
+
+    if(msg.type === 'PROPOSTA_MIRROR_UPDATE_V31'){
+      propostaMirrorV31.data = msg.data || {};
+      propostaMirrorV31.lastAt = Date.now();
+      postMirrorToDocV31('consent');
+      postMirrorToDocV31('comprov');
+      return;
+    }
+
+    if(msg.type === 'PROPOSTA_MIRROR_SOURCE_READY_V31' || msg.type === 'MIRROR_TARGET_READY_V31'){
+      setTimeout(syncPropostaMirrorV31, 80);
+      return;
+    }
+  }, false);
+
+  
+  // ANEXOS (PDF / IMAGEM) — fluxo atual usado pelo gerador PDF final limpo.
+  // Mantém somente seleção/listagem em memória. O anexamento real é feito no motor PDFLib ativo.
+  const attachBtn = document.getElementById('attachBtn');
+  const attachInput = document.getElementById('attachInput');
+  const attachList = document.getElementById('attachList');
+  const prepAttachBtn = document.getElementById('prepAttachBtn');
+
+  const attachments = (window.__attachments = window.__attachments || []);
+  let attachSeq = window.__attachSeq || 1;
+
+  function bytesToMB(b){ return (b/1024/1024).toFixed(2); }
+
+  function renderAttachList(){
+    if(!attachList) return;
+    attachList.innerHTML = '';
+    attachments.forEach(att => {
+      const row = document.createElement('div');
+      row.className = 'attachRow';
+
+      const name = document.createElement('div');
+      name.className = 'attachName';
+      name.title = att.name || '';
+      name.textContent = att.name || '(sem nome)';
+
+      const meta = document.createElement('div');
+      meta.className = 'attachMeta';
+      const kind = att.kind === 'image' ? 'IMG' : (att.kind === 'pdf' ? 'PDF' : 'ARQ');
+      meta.textContent = `${kind} • ${(att.sizeMB || '—')} MB`;
+
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'attachRm';
+      rm.textContent = '🗑 Remover';
+      rm.addEventListener('click', () => {
+        const idx = attachments.findIndex(x => x.id === att.id);
+        if(idx >= 0){
+          try{ if(attachments[idx].blobUrl) URL.revokeObjectURL(attachments[idx].blobUrl); }catch(e){}
+          attachments.splice(idx, 1);
+          renderAttachList();
+        }
+      });
+
+      row.appendChild(name);
+      row.appendChild(meta);
+      row.appendChild(rm);
+      attachList.appendChild(row);
+    });
+  }
+
+  function readFileAsDataURL(file){
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onerror = () => reject(new Error('file_read_error'));
+      fr.onload = () => resolve(String(fr.result || ''));
+      fr.readAsDataURL(file);
+    });
+  }
+
+  async function addFiles(fileList){
+    const files = Array.from(fileList || []);
+    for(const f of files){
+      const type = (f.type || '').toLowerCase();
+      const isPdf = type === 'application/pdf' || /\.pdf$/i.test(f.name || '');
+      const isImg = type.startsWith('image/') || /\.(png|jpg|jpeg|webp)$/i.test(f.name || '');
+      const id = 'ATT_' + Date.now() + '_' + (attachSeq++);
+      window.__attachSeq = attachSeq;
+
+      if(isPdf){
+        let blobUrl = '';
+        try{ blobUrl = URL.createObjectURL(f); }catch(e){}
+        attachments.push({ id, kind:'pdf', name:f.name || 'pdf', sizeMB:bytesToMB(f.size || 0), blobUrl });
+      }else if(isImg){
+        let dataUrl = '';
+        try{ dataUrl = await readFileAsDataURL(f); }catch(e){}
+        attachments.push({ id, kind:'image', name:f.name || 'imagem', sizeMB:bytesToMB(f.size || 0), dataUrl });
+      }else{
+        attachments.push({ id, kind:'unknown', name:f.name || 'arquivo', sizeMB:bytesToMB(f.size || 0) });
+      }
+    }
+    renderAttachList();
+  }
+
+  if(attachBtn && attachInput){
+    attachBtn.addEventListener('click', () => { try{ attachInput.click(); }catch(e){} });
+    attachInput.addEventListener('change', async () => {
+      try{ await addFiles(attachInput.files); }catch(e){}
+      try{ attachInput.value = ''; }catch(e){}
+    });
+  }
+
+  if(prepAttachBtn){
+    prepAttachBtn.title = 'Os anexos serão incorporados diretamente ao PDF final.';
+    prepAttachBtn.addEventListener('click', () => {
+      try{
+        prepAttachBtn.textContent = '✓';
+        setTimeout(() => { try{ prepAttachBtn.textContent = '⟳'; }catch(e){} }, 900);
+      }catch(e){}
+    });
+  }
+
+  renderAttachList();
+
+// init
+  buildMenu();
+  // O botão GERAR PDF é assumido pelo motor PDFLib ativo.
+  DOCS.forEach(d => ensureFrames(d.id));
+  activateDoc(state.activeDocId, state.activeInstIndex[state.activeDocId]);
+  setTimeout(() => {
+    if(typeof window.__propostaMirrorV31Sync === 'function') window.__propostaMirrorV31Sync();
+  }, 500);
+})();
+</script>
+
+
+<script>
+
+/* V2.6.12 - Gerador PDF via /pdfs com campos do formulário + marcas desenhadas e versão final limpa
+   Mantém a tela, validação, anexos e visualizador do navegador.
+   Troca somente o motor do GERAR PDF: PDF original + textos reais por posição.
+*/
+(function(){
+  if(window.__rpropPdfOriginalV26) return;
+  window.__rpropPdfOriginalV26 = true;
+
+  const ORDER = ['proposta','carencia','carta','consent','comprov'];
+  const DOC_TITLES = {
+    proposta: 'PROPOSTA COLETIVO POR ADESÃO',
+    carencia: 'TERMO DE CARÊNCIA',
+    carta: 'CARTA ANS',
+    consent: 'TERMO DE CONSENTIMENTO',
+    comprov: 'COMPROVANTE DE ADESÃO'
+  };
+  const BASE_PDFS = {
+    proposta: 'pdfs/PROPOSTA_COLETIVO_POR_ADESAO.pdf',
+    carencia: 'pdfs/TERMO_DE_CARENCIA.pdf',
+    carta: 'pdfs/CARTA_ANS.pdf',
+    consent: 'pdfs/TERMO_DE_CONSENTIMENTO.pdf',
+    comprov: 'pdfs/COMPROVANTE_ADESAO.pdf'
+  };
+  // V2.6.9: os PDFs base NÃO ficam mais embutidos no index.html.
+  // O gerador deve carregar sempre os arquivos atuais da pasta /pdfs,
+  // para que as posições dos campos venham diretamente do PDF formulário.
+
+
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+  function escapeHtml(txt){
+    return String(txt || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  function postToIframe(iframe, payload, timeoutMs){
+    timeoutMs = timeoutMs || 2000;
+    const rid = 'RID_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+    const msg = Object.assign({__unified:true, rid}, payload || {});
+    return new Promise((resolve, reject)=>{
+      let done = false;
+      const timer = setTimeout(()=>{
+        if(done) return;
+        done = true;
+        window.removeEventListener('message', onMsg, false);
+        reject(new Error('timeout:' + (payload && payload.type)));
+      }, timeoutMs);
+      function onMsg(ev){
+        const data = ev.data;
+        if(!data || typeof data !== 'object') return;
+        if(data.__unified !== true) return;
+        if(data.rid !== rid) return;
+        if(done) return;
+        done = true;
+        clearTimeout(timer);
+        window.removeEventListener('message', onMsg, false);
+        resolve(data);
+      }
+      window.addEventListener('message', onMsg, false);
+      try{ iframe.contentWindow.postMessage(msg, '*'); }
+      catch(e){
+        clearTimeout(timer);
+        window.removeEventListener('message', onMsg, false);
+        reject(e);
+      }
+    });
+  }
+
+  async function ensureReady(iframe){
+    for(let i=0;i<5;i++){
+      try{
+        const r = await postToIframe(iframe, {type:'PING'}, 1200);
+        if(r && r.type === 'PONG') return true;
+      }catch(e){}
+      await sleep(120);
+    }
+    return false;
+  }
+
+  function collectWrapsInOrder(){
+    const stage = document.getElementById('stage');
+    if(!stage) return [];
+    const seq = [];
+    for(const docId of ORDER){
+      const wraps = Array.from(stage.querySelectorAll('.framewrap[data-doc="'+docId+'"]'));
+      wraps.sort((a,b)=> (parseInt(a.dataset.inst||'0',10) - parseInt(b.dataset.inst||'0',10)));
+      for(const w of wraps){
+        try{
+          if(window.__unifiedState && window.__unifiedState.counts && parseInt(w.dataset.inst||'0',10) > (window.__unifiedState.counts[docId]||0)) continue;
+        }catch(e){}
+        const iframe = w.querySelector('iframe');
+        if(iframe) seq.push({docId, inst:(w.dataset.inst||'1'), iframe});
+      }
+    }
+    return seq;
+  }
+
+  function showValidationProblems(groups){
+    const overlay = document.getElementById('modalOverlay');
+    const list = document.getElementById('modalList');
+    const close = document.getElementById('modalCloseBtn');
+    if(!overlay || !list){
+      alert('Faltam campos obrigatórios.');
+      return;
+    }
+    list.innerHTML = (groups || []).map(g => {
+      const items = (g.items || []).map(x => '<li>'+escapeHtml(x)+'</li>').join('');
+      return '<div class="grp"><div class="t">'+escapeHtml(g.title || 'Documento')+'</div><ul>'+items+'</ul></div>';
+    }).join('');
+    overlay.style.display = 'flex';
+    if(close && !close.__rpropBound){
+      close.__rpropBound = true;
+      close.addEventListener('click', ()=>{ overlay.style.display = 'none'; });
+    }
+    overlay.addEventListener('click', (ev)=>{ if(ev.target === overlay) overlay.style.display = 'none'; }, {once:true});
+  }
+
+  async function validateRequired(seq){
+  //return []; // TEMPORÁRIO: desabilita validação para calibrar posições
+    const groups = [];
+    for(const it of (seq || [])){
+      if(!it || !it.iframe) continue;
+      const baseTitle = DOC_TITLES[it.docId] || String(it.docId || 'Documento').toUpperCase();
+      const title = (it.docId === 'carencia' || it.docId === 'carta') ? `${baseTitle} — Instância ${it.inst || '1'}` : baseTitle;
+      let items = [];
+      try{
+        const resp = await postToIframe(it.iframe, {type:'VALIDATE_REQUIRED_V191', docId:it.docId, inst:it.inst || '1'}, 2800);
+        if(resp && resp.type === 'VALIDATE_REQUIRED_V191_RESULT'){
+          items = Array.isArray(resp.errors) ? resp.errors.filter(Boolean) : [];
+        }
+      }catch(e){
+        try{
+          const oldResp = await postToIframe(it.iframe, {type:'VALIDATE'}, 1800);
+          if(oldResp && oldResp.type === 'VALIDATE_RESULT') items = Array.isArray(oldResp.errors) ? oldResp.errors.filter(Boolean) : [];
+          else items = ['Não foi possível validar este documento. Recarregue a página e tente novamente.'];
+        }catch(e2){
+          items = ['Não foi possível validar este documento. Recarregue a página e tente novamente.'];
+        }
+      }
+      if(items && items.length) groups.push({title, items});
+    }
+    return groups;
+  }
+
+  function sanitizePdfBaseName(value){
+    const name = String(value || '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toUpperCase()
+      .replace(/[’'`´]/g,'')
+      .replace(/[-_]+/g,' ')
+      .replace(/[\\/:*?"<>|]+/g,' ')
+      .replace(/[^A-Z0-9\s]+/g,' ')
+      .trim()
+      .replace(/\s+/g,' ')
+      .slice(0,90)
+      .trim();
+    return name || 'DOCUMENTO UNIFICADO';
+  }
+
+  function getPdfFileName(){
+    // V2.6: fallback seguro - não acessa document/contentDocument de iframe.
+    try{
+      const raw = localStorage.getItem('rprop_state_v4');
+      const st = raw ? JSON.parse(raw) : null;
+      const titular = st && st.values && st.values.nome_titular ? st.values.nome_titular : '';
+      return sanitizePdfBaseName(titular) + '.pdf';
+    }catch(e){
+      return 'DOCUMENTO UNIFICADO.pdf';
+    }
+  }
+
+  async function getPdfFileNameSafe(seq){
+    // V2.6: pega o nome do titular por postMessage, sem acessar o documento do iframe.
+    try{
+      let frame = null;
+      for(const it of (seq || [])){
+        if(it && it.docId === 'proposta' && String(it.inst || '1') === '1'){
+          frame = it.iframe;
+          break;
+        }
+      }
+      if(!frame) frame = document.querySelector('.framewrap[data-doc="proposta"][data-inst="1"] iframe');
+      if(frame){
+        const resp = await postToIframe(frame, {type:'GET_FIELD_VALUE_V26', fieldId:'nome_titular'}, 1400);
+        const titular = resp && resp.type === 'GET_FIELD_VALUE_V26_RESULT' ? String(resp.value || '').trim() : '';
+        if(titular) return sanitizePdfBaseName(titular) + '.pdf';
+      }
+    }catch(e){}
+    return getPdfFileName();
+  }
+
+  function openPreparingPdfWindow(){
+    // V2.6.12: no Live Server/GitHub, o Chrome pode bloquear pop-up aberto
+    // somente depois de vários await. Abrimos a aba imediatamente no clique
+    // e depois apenas substituímos o conteúdo pelo PDF final.
+    let w = null;
+    try{ w = window.open('', '_blank'); }catch(_e){ w = null; }
+    if(w){
+      try{
+        w.document.open();
+        w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Preparando PDF...</title><style>html,body{margin:0;height:100%;font-family:Arial,sans-serif;background:#111827;color:#e5e7eb;display:flex;align-items:center;justify-content:center}.box{padding:22px 26px;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(255,255,255,.05);text-align:center}.t{font-weight:900;font-size:18px;margin-bottom:8px}.s{font-size:13px;color:#9ca3af}</style></head><body><div class="box"><div class="t">Preparando PDF...</div><div class="s">Aguarde enquanto o documento final é gerado.</div></div><\/body><\/html>');
+        w.document.close();
+      }catch(_e){}
+    }
+    return w;
+  }
+
+  function writePdfErrorWindow(w, message){
+    if(!w || w.closed) return;
+    try{
+      const safe = escapeHtml(message || 'Erro ao gerar PDF.');
+      w.document.open();
+      w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Erro ao gerar PDF</title><style>html,body{margin:0;height:100%;font-family:Arial,sans-serif;background:#111827;color:#fee2e2;display:flex;align-items:center;justify-content:center}.box{max-width:720px;padding:22px 26px;border:1px solid rgba(248,113,113,.45);border-radius:16px;background:rgba(127,29,29,.22)}.t{font-weight:900;font-size:18px;margin-bottom:8px}.s{font-size:13px;color:#fecaca;line-height:1.4}</style></head><body><div class="box"><div class="t">Não foi possível gerar o PDF</div><div class="s">${safe}</div></div><\/body><\/html>`);
+      w.document.close();
+    }catch(_e){}
+  }
+
+  function openPdfBlobNamed(blob, pdfFileName, targetWindow){
+    // V2.6.13: não escreve HTML/JS complexo na aba final.
+    // A aba aberta no clique é redirecionada diretamente para o blob do PDF,
+    // evitando despejar código/texto bruto no visualizador do navegador.
+    const url = URL.createObjectURL(blob);
+    let w = null;
+    try{
+      if(targetWindow && !targetWindow.closed) w = targetWindow;
+    }catch(_e){ w = null; }
+
+    if(w){
+      try{
+        try{ w.document.title = pdfFileName || 'DOCUMENTO UNIFICADO.pdf'; }catch(_t){}
+        w.location.replace(url);
+        try{ w.focus(); }catch(_f){}
+        return {opened:true, url};
+      }catch(_e){
+        try{ w.location.href = url; return {opened:true, url}; }catch(_e2){}
+      }
+    }
+
+    try{
+      w = window.open(url, '_blank');
+      if(w){ try{ w.focus(); }catch(_f){} return {opened:true, url}; }
+    }catch(_e){}
+
+    return {opened:false, url};
+  }
+
+  async function fetchArrayBuffer(url){
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Não foi possível carregar o PDF base: ' + url);
+    return await res.arrayBuffer();
+  }
+
+  async function getBasePdfBytes(docId){
+    const url = BASE_PDFS[docId];
+    if(!url) throw new Error('PDF base não configurado: ' + (DOC_TITLES[docId] || docId));
+    try{
+      return await fetchArrayBuffer(url);
+    }catch(e){
+      try{ console.error('Falha ao carregar PDF da pasta /pdfs:', docId, url, e); }catch(_){}
+      throw new Error('Não foi possível carregar o PDF base da pasta /pdfs: ' + url);
+    }
+  }
+
+  function isVisible(el){
+    if(!el) return false;
+    const cs = el.ownerDocument.defaultView.getComputedStyle(el);
+    if(!cs || cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity || '1') === 0) return false;
+    let cur = el.parentElement;
+    while(cur){
+      const ccs = cur.ownerDocument.defaultView.getComputedStyle(cur);
+      if(ccs && (ccs.display === 'none' || ccs.visibility === 'hidden')) return false;
+      cur = cur.parentElement;
+    }
+    return true;
+  }
+
+  function normalizeOverlayText(text){
+    return String(text || '')
+      .replace(/\u00a0/g, ' ')
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function readCleanNodeText(node){
+    if(!node) return '';
+    const clone = node.cloneNode(true);
+    try{
+      clone.querySelectorAll('.calib-label, .calib-handle, .calib-resize, .gridlines, script, style').forEach(n => n.remove());
+    }catch(e){}
+    return normalizeOverlayText(clone.textContent || '');
+  }
+
+  function stripInternalKeyPrefix(text, el){
+    text = normalizeOverlayText(text);
+    if(!text || !el) return text;
+    const keys = [];
+    try{ if(el.id) keys.push(el.id); }catch(e){}
+    try{ if(el.getAttribute('data-key')) keys.push(el.getAttribute('data-key')); }catch(e){}
+    try{ if(el.getAttribute('data-calib')) keys.push(el.getAttribute('data-calib')); }catch(e){}
+    for(const k of keys){
+      const key = normalizeOverlayText(k);
+      if(!key) continue;
+      if(text === key) return '';
+      if(text.startsWith(key + ' ')) return normalizeOverlayText(text.slice(key.length));
+      if(text.startsWith(key + ':')) return normalizeOverlayText(text.slice(key.length + 1));
+      if(text.startsWith(key + ' - ')) return normalizeOverlayText(text.slice(key.length + 3));
+    }
+    return text;
+  }
+
+  function textFromPos(el){
+    if(!el) return '';
+
+    // Checkboxes/marcações continuam usando somente o X visível.
+    if(el.classList && el.classList.contains('mark')){
+      const markText = normalizeOverlayText(el.textContent || '');
+      return markText ? 'X' : '';
+    }
+
+    // V2.6: os elementos de calibração ficam como referência técnica/data-attrs, sem texto visível no preenchimento.
+    // Antes, textContent pegava o rótulo técnico (ex.: out_nome1) + valor.
+    // Agora priorizamos somente o conteúdo do campo preenchido.
+    let field = null;
+    try{
+      // V2.6: quando existir .field-text, ele é o valor real do campo.
+      // O id/data-key ficam só como referência técnica no HTML.
+      field = el.querySelector('.field-text') ||
+        ((el.matches && el.matches('.field, .field2, .field-text'))
+          ? el
+          : el.querySelector('.field, .field2, .field-text'));
+    }catch(e){ field = null; }
+
+    let text = readCleanNodeText(field);
+    if(text) return stripInternalKeyPrefix(text, el);
+
+    text = readCleanNodeText(el);
+    return stripInternalKeyPrefix(text, el);
+  }
+
+  function getCssNumber(win, el, prop, fallback){
+    try{
+      const cs = win.getComputedStyle(el);
+      const raw = cs.getPropertyValue(prop);
+      const n = parseFloat(raw);
+      return Number.isFinite(n) ? n : fallback;
+    }catch(e){ return fallback; }
+  }
+
+  async function extractOverlayPagesViaBridge(iframe, docId){
+    // V2.6: a medição das posições é feita DENTRO do iframe e enviada por postMessage.
+    // O index não lê mais iframe.contentDocument/contentWindow.document, evitando o erro de cross-origin em file:// e GitHub.
+    const resp = await postToIframe(iframe, {type:'GET_OVERLAY_PAGES_V26', docId}, 3500);
+    if(resp && resp.type === 'GET_OVERLAY_PAGES_V26_RESULT' && Array.isArray(resp.pages)){
+      return resp.pages;
+    }
+    throw new Error('Não foi possível coletar as posições de ' + (DOC_TITLES[docId] || docId));
+  }
+
+
+  const PROPOSTA_FORM_TEXT_FIELDS_V261 = {
+    p_vendedor: 'VENDEDOR',
+    p_valor_plano: 'VALOR_PLANO',
+    p_taxa: 'TAXA',
+    p_contrato: 'CONTRATO',
+    p_nome_titular: 'NOME_TITULAR',
+    p_cpf_titular: 'CPF_TITULAR',
+    p_data_titular: 'DATA_NASCIMENTO_TITULAR',
+    p_local_titular: 'LOCAL_NASCIMENTO_TITULAR',
+    p_sexo_titular: 'SEXO_TITULAR',
+    p_estado_civil: 'ESTADO_CIVIL_TITULAR',
+    p_email_titular: 'EMAIL_TITULAR',
+    p_fone: 'TELEFONE_TITULAR',
+    p_cns_titular: 'CNS_TITULAR',
+    p_cep: 'CEP',
+    p_logradouro: 'LOGRADOURO',
+    p_numero: 'NUMERO_LOGRADOURO',
+    p_bairro: 'BAIRRO',
+    p_cidade: 'CIDADE',
+    p_estado: 'ESTADO',
+    p_complemento: 'COMPLEMENTO',
+    p_dep1: 'DEPENDENTE 1',
+    p_cpf_d1: 'CPF_1',
+    p_data_d1: 'DATA DE NASCIMENTO_1',
+    p_local_d1: 'LOCAL DE NASCIMENTO_1',
+    p_vinculo_d1: 'VINCULO_1',
+    p_estado_civil_d1: 'ESTADO_CIVIL_1',
+    p_email_d1: 'EMAIL_1',
+    p_telefone_d1: 'TELEFONE_1',
+    p_cns_d1: 'CNS_1',
+    p_dep2: 'DEPENDENTE 2',
+    p_cpf_d2: 'CPF_2',
+    p_data_d2: 'DATA DE NASCIMENTO_2',
+    p_local_d2: 'LOCAL DE NASCIMENTO_2',
+    p_vinculo_d2: 'VINCULO_2',
+    p_estado_civil_d2: 'ESTADO_CIVIL_2',
+    p_email_d2: 'EMAIL_2',
+    p_telefone_d2: 'TELEFONE_2',
+    p_cns_d2: 'CNS_2',
+    p_dep3: 'DEPENDENTE 3',
+    p_cpf_d3: 'CPF_3',
+    p_data_d3: 'DATA DE NASCIMENTO_3',
+    p_local_d3: 'LOCAL DE NASCIMENTO_3',
+    p_vinculo_d3: 'VINCULO_3',
+    p_estado_civil_d3: 'ESTADO_CIVIL_3',
+    p_email_d3: 'EMAIL_3',
+    p_telefone_d3: 'TELEFONE_3',
+    p_cns_d3: 'CNS_3',
+    p_dep4: 'DEPENDENTE 4',
+    p_cpf_d4: 'CPF_4',
+    p_data_d4: 'DATA DE NASCIMENTO_4',
+    p_local_d4: 'LOCAL DE NASCIMENTO_4',
+    p_vinculo_d4: 'VINCULO_4',
+    p_estado_civil_d4: 'ESTADO CIVIL',
+    p_email_d4: 'EMAIL_4',
+    p_telefone_d4: 'TELEFONE_4',
+    p_cns_d4: 'CNS_4',
+    p_nome_plano: 'NOME_PLANO',
+    p_codigo_plano: 'CODIGO_PLANO'
+  };
+
+  const PROPOSTA_FORM_CHECK_FIELDS_V261 = {
+    m_prog_nova: 'NOVA_ADESAO_PROG',
+    m_prog_incl_dep: 'INCLUSAO_DEPENDENTE_PROG',
+    m_prog_migr_int: 'MIGRACAO_INTERNA_PROG',
+    m_prog_mud_mod: 'MUDANCA_MODALIDADE_PROG',
+    m_imm_nova: 'NOVA_ADESAO_IMED',
+    m_imm_rn: 'RN_IMED',
+    m_imm_dependente: 'INCLUSAO_DEPENDENTE_IMED',
+    m_imm_mud_tit: 'MUDANCA_TITULARIDADE_IMED',
+    m_imm_port_esp: 'PORTABILIDADE_ESPECIAL_IMED',
+    h_car: 'CARENCIA',
+    h_port: 'PORTABILIDADE',
+    h_sum: 'SUMULA_21',
+    car_T: 'CAR_TIT',
+    car_D1: 'CAR_D1',
+    car_D2: 'CAR_D2',
+    car_D3: 'CAR_D3',
+    car_D4: 'CAR_D4',
+    port_T: 'POR_TITULAR',
+    port_D1: 'PORT_D1',
+    port_D2: 'PORT_D2',
+    port_D3: 'PORT_D3',
+    port_D4: 'PORT_D4',
+    sum_T: 'SUM_TITULAR',
+    sum_D1: 'SUM_D1',
+    sum_D2: 'SUM_D2',
+    sum_D3: 'SUM_D3',
+    sum_D4: 'SUM_D4'
+  };
+
+  function overlayPagesToValueMap(overlayPages){
+    const values = Object.create(null);
+    for(const pg of (overlayPages || [])){
+      for(const item of (pg.items || [])){
+        const id = String(item && item.id ? item.id : '').trim();
+        if(!id) continue;
+        values[id] = safeTextForPdf(item.text || '');
+      }
+    }
+    return values;
+  }
+
+  function getFormFieldSafe(form, name){
+    try{ return form.getField(name); }catch(e){ return null; }
+  }
+
+  function setFieldWidgetsNeutral(field, pdfDoc){
+    // Remove borda/preenchimento dos widgets para o PDF gerado não exibir caixas azuis/cinzas.
+    try{
+      const PDFName = PDFLib.PDFName;
+      const widgets = field && field.acroField && field.acroField.getWidgets ? field.acroField.getWidgets() : [];
+      for(const widget of widgets){
+        try{
+          const dict = widget.dict;
+          dict.set(PDFName.of('Border'), pdfDoc.context.obj([0, 0, 0]));
+          dict.set(PDFName.of('BS'), pdfDoc.context.obj({W: 0}));
+          const mk = dict.lookup(PDFName.of('MK'));
+          if(mk && mk.delete){
+            try{ mk.delete(PDFName.of('BG')); }catch(_e){}
+            try{ mk.delete(PDFName.of('BC')); }catch(_e){}
+          }
+        }catch(_e){}
+      }
+    }catch(_e){}
+  }
+
+
+  function drawProposalCheckMarksV263(pdfDoc, overlayPages, fonts){
+    // O PDF base v2 não tem campos checkbox. Os quadradinhos já existem na arte.
+    // Então a versão final desenha somente o X nas marcações selecionadas,
+    // evitando o "quadrado dentro do quadrado" dos checkboxes reais achatados.
+    const markIds = new Set(Object.keys(PROPOSTA_FORM_CHECK_FIELDS_V261 || {}));
+    const pages = pdfDoc.getPages();
+    for(const pg of (overlayPages || [])){
+      const pageIndex = Number.isFinite(pg && pg.pageIndex) ? pg.pageIndex : 0;
+      const pdfPage = pages[pageIndex] || pages[0];
+      if(!pdfPage) continue;
+      const width = pdfPage.getWidth();
+      const height = pdfPage.getHeight();
+      for(const item of ((pg && pg.items) || [])){
+        const id = String(item && item.id ? item.id : '').trim();
+        if(!markIds.has(id)) continue;
+        const text = safeTextForPdf(item.text || '');
+        if(text !== 'X') continue;
+        const x = (Number(item.xPct) || 0) * width;
+        const y = (Number(item.yBottomPct) || 0) * height + (Number(item.baselineAdjustPt) || 1.2);
+        const size = Math.max(8, Math.min(13, Number(item.fontPt) || 10));
+        try{
+          pdfPage.drawText('X', { x, y, size, font: fonts && fonts.bold ? fonts.bold : undefined });
+        }catch(_e){
+          try{ pdfPage.drawText('X', { x, y, size }); }catch(_e2){}
+        }
+      }
+    }
+  }
+
+  function fillProposalFormDocumentV261(pdfDoc, overlayPages, fonts){
+    const form = pdfDoc.getForm();
+    const values = overlayPagesToValueMap(overlayPages);
+
+    // Primeiro neutraliza a aparência de todos os campos do modelo.
+    try{
+      for(const field of form.getFields()) setFieldWidgetsNeutral(field, pdfDoc);
+    }catch(_e){}
+
+    for(const [overlayId, fieldName] of Object.entries(PROPOSTA_FORM_TEXT_FIELDS_V261)){
+      const raw = values[overlayId] || '';
+      const value = safeTextForPdf(raw);
+      const field = getFormFieldSafe(form, fieldName);
+      if(!field) continue;
+      const tx = form.getTextField(fieldName);
+      tx.setText(value);
+
+      try{
+        tx.setFontSize(
+          fieldName === 'SEXO_TITULAR' || overlayId === 'p_sexo_titular'
+            ? 12
+            : 9
+        );
+      }catch(_e){}
+
+      applyTextFieldAlignmentV268(tx, getMappedFormAlignmentV268('proposta', fieldName));
+
+      try{
+        if(fonts && fonts.bold && tx.updateAppearances){
+          tx.updateAppearances(fonts.bold);
+        }
+        setFieldWidgetsNeutral(tx, pdfDoc);
+      }catch(_e){}
+    }
+
+    for(const [overlayId, fieldName] of Object.entries(PROPOSTA_FORM_CHECK_FIELDS_V261)){
+      const checked = values[overlayId] === 'X';
+      const field = getFormFieldSafe(form, fieldName);
+      if(!field) continue;
+      try{
+        const cb = form.getCheckBox(fieldName);
+        if(checked) cb.check(); else cb.uncheck();
+        setFieldWidgetsNeutral(cb, pdfDoc);
+      }catch(_e){}
+    }
+
+    try{ form.updateFieldAppearances(fonts && fonts.bold ? fonts.bold : undefined); }catch(_e){}
+
+    // V2.6.4: o botão GERAR PDF deve entregar uma versão final limpa.
+    // Depois de preencher os campos de texto, achatamos o formulário da proposta.
+    // As opções marcadas são desenhadas como X sobre os quadrados originais do PDF.
+    try{ form.flatten(); }catch(_e){}
+    drawProposalCheckMarksV263(pdfDoc, overlayPages, fonts);
+    return pdfDoc;
+  }
+
+
+  const FORM_TEXT_FIELDS_V264 = {
+    // V2.6.7: documentos 2, 3 e 4 usam somente os ids .pos coletados do HTML.
+    // Evita conflito em que out_* preenchia o mesmo campo PDF com vazio depois do pos_*.
+    carta: {
+      pos_nome: 'NOME_BENEFICIARIO_CARTA_ANS'
+    },
+    carencia: {
+      pos_nome: 'NOME_BENEFICIARIO_TERMO_CARENCIA',
+      pos_urgencia: 'URG_EMER',
+      pos_consultas: 'CONSULTAS',
+      pos_ex_basicos: 'EXAMES_SIMPLES',
+      pos_ex_especiais: 'EXAMES_COMPLEXOS',
+      pos_internacoes: 'INTERNACOES',
+      pos_cirurgias: 'CIRURGIAS',
+      pos_parto: 'PARTO',
+      pos_dlp: 'DLP'
+    },
+    consent: {
+      pos_email: 'EMAIL_TERMO_CONSENTIMENTO',
+      pos_ddd: 'DDD_TERMO_CONSENTIMENTO',
+      pos_tel: 'TELEFONE_TERMO_CONSENTIMENTO'
+    },
+    comprov: {
+      out_nome1: 'NOME_BENEFICIARIO_COMPROVANTE_ADESAO',
+      out_prestadora: 'PRESTADORA_COMPROVANTE_ADESAO',
+      out_plano_contrat: 'PLANO_CONTRATADO_COMPROVANTE_ADESAO',
+      out_ativacao: 'TIPO_ATIVACAO_COMPROVANTE_ADESAO',
+      out_valor: 'VALOR_MENSAL_COMPROVANTE_ADESAO',
+      out_venc: 'VENCIMENTO_DIA_COMPROVANTE',
+      out_reaj: 'REAJUSTE_COMPROVANTE_ADESAO',
+      out_desist: 'DESISTENCIA_ADESAO_COMPROVANTE_ADESAO',
+      out_port_dd: 'DIA_COMPROVANTE_ADESAO',
+      out_port_mm: 'MES_COMPROVANTE_ADESAO',
+      out_port_aaaa: 'ANO_COMPROVANTE_ADESAO',
+      out_nome2: 'NOME_BENEFICIARIO_AUTO_COMPROVANTE_ADESAO',
+      out_resp_resolve: 'RESPONSAVEL_RESOLVE_COMPROVANTE_ADESAO'
+    }
+  };
+
+  const FORM_FIELD_FONT_SIZES_V266 = {
+    carta: {
+      default: 8.2
+    },
+    carencia: {
+      default: 8.8,
+      NOME_BENEFICIARIO_TERMO_CARENCIA: 9.2
+    },
+    consent: {
+      default: 9.5
+    },
+    comprov: {
+      default: 8.8,
+      RESPONSAVEL_RESOLVE_COMPROVANTE_ADESAO: 10,
+      out_resp_resolve: 10
+    }
+  };
+
+  function getMappedFormFontSizeV266(docId, overlayId, fieldName){
+    const cfg = FORM_FIELD_FONT_SIZES_V266[docId] || {};
+    const byOverlay = overlayId && cfg[overlayId] != null ? Number(cfg[overlayId]) : null;
+    const byField = fieldName && cfg[fieldName] != null ? Number(cfg[fieldName]) : null;
+    const fallback = cfg.default != null ? Number(cfg.default) : 9;
+    const n = Number.isFinite(byOverlay) ? byOverlay : (Number.isFinite(byField) ? byField : fallback);
+    return Number.isFinite(n) && n > 0 ? n : 9;
+  }
+
+
+  const FORM_FIELD_ALIGNMENTS_V268 = {
+    proposta: {
+      VENDEDOR: 'center',
+      VALOR_PLANO: 'center',
+      TAXA: 'center',
+      CONTRATO: 'center'
+    },
+    carencia: {
+      URG_EMER: 'center',
+      CONSULTAS: 'center',
+      EXAMES_SIMPLES: 'center',
+      EXAMES_COMPLEXOS: 'center',
+      INTERNACOES: 'center',
+      CIRURGIAS: 'center',
+      PARTO: 'center',
+      DLP: 'center'
+    },
+    consent: {
+      EMAIL_TERMO_CONSENTIMENTO: 'center',
+      DDD_TERMO_CONSENTIMENTO: 'center',
+      TELEFONE_TERMO_CONSENTIMENTO: 'center'
+    },
+    comprov: {
+      PRESTADORA_COMPROVANTE_ADESAO: 'center',
+      DESISTENCIA_ADESAO_COMPROVANTE_ADESAO: 'center',
+      DIA_COMPROVANTE_ADESAO: 'center',
+      MES_COMPROVANTE_ADESAO: 'center',
+      ANO_COMPROVANTE_ADESAO: 'center',
+      RESPONSAVEL_RESOLVE_COMPROVANTE_ADESAO: 'center'
+    }
+  };
+
+  function getMappedFormAlignmentV268(docId, fieldName){
+    const cfg = FORM_FIELD_ALIGNMENTS_V268[docId] || {};
+    return fieldName && cfg[fieldName] ? cfg[fieldName] : null;
+  }
+
+  function applyTextFieldAlignmentV268(tx, alignment){
+    if(!tx || !alignment) return;
+    try{
+      const desired = String(alignment).toLowerCase();
+      const TA = PDFLib.TextAlignment || {};
+      let val = null;
+      if(desired === 'center') val = (TA.Center != null ? TA.Center : 1);
+      else if(desired === 'right') val = (TA.Right != null ? TA.Right : 2);
+      else if(desired === 'left') val = (TA.Left != null ? TA.Left : 0);
+      if(val != null && tx.setAlignment) tx.setAlignment(val);
+    }catch(_e){}
+  }
+
+
+  function overlayItemValuesById(overlayPages){
+    const values = Object.create(null);
+    for(const pg of (overlayPages || [])){
+      for(const item of ((pg && pg.items) || [])){
+        const ids = [];
+        if(item && item.id) ids.push(String(item.id).trim());
+        if(item && item.key) ids.push(String(item.key).trim());
+        const value = safeTextForPdf((item && item.text) || '');
+        for(const id of ids){ if(id) values[id] = value; }
+      }
+    }
+    return values;
+  }
+
+  function filterOverlayPagesForUnmappedFields(overlayPages, usedIds){
+    const used = usedIds || new Set();
+    return (overlayPages || []).map(pg => {
+      const copy = Object.assign({}, pg || {});
+      copy.items = ((pg && pg.items) || []).filter(item => {
+        const id = String((item && item.id) || '').trim();
+        return !id || !used.has(id);
+      });
+      return copy;
+    });
+  }
+
+  function fillMappedFormDocumentV264(pdfDoc, overlayPages, docId, fonts){
+    const map = FORM_TEXT_FIELDS_V264[docId];
+    if(!map) return {usedIds:new Set(), hadMap:false};
+    const usedIds = new Set();
+    const form = pdfDoc.getForm();
+    const values = overlayItemValuesById(overlayPages);
+
+    try{
+      for(const field of form.getFields()) setFieldWidgetsNeutral(field, pdfDoc);
+    }catch(_e){}
+
+    for(const [overlayId, fieldName] of Object.entries(map)){
+      const value = safeTextForPdf(values[overlayId] || '');
+      const field = getFormFieldSafe(form, fieldName);
+      if(!field) continue;
+      usedIds.add(overlayId);
+      try{
+        const tx = form.getTextField(fieldName);
+        tx.setText(value);
+        try{ tx.setFontSize(getMappedFormFontSizeV266(docId, overlayId, fieldName)); }catch(_e){}
+        applyTextFieldAlignmentV268(tx, getMappedFormAlignmentV268(docId, fieldName));
+        try{ if(fonts && fonts.bold && tx.updateAppearances) tx.updateAppearances(fonts.bold); }catch(_e){}
+        setFieldWidgetsNeutral(tx, pdfDoc);
+      }catch(e){
+        try{ field.setText ? field.setText(value) : null; }catch(_e){}
+      }
+    }
+
+    // V2.6.9: aparências são atualizadas campo a campo para preservar tamanho/fonte/alinhamento.
+    // V2.6.7: os novos modelos dos demais documentos também são formulários,
+    // mas o GERAR PDF continua entregando a versão final limpa. Por isso, após
+    // preencher, achatamos os campos e desenhamos apenas eventuais itens não mapeados.
+    try{ form.flatten(); }catch(_e){}
+    return {usedIds, hadMap:true};
+  }
+
+  function safeTextForPdf(str){
+    return String(str || '')
+      .replace(/[\u2010-\u2015]/g, '-')
+      .replace(/[\u2022]/g, '•')
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .trim();
+  }
+
+  function fitText(font, text, size, maxWidth){
+    let out = safeTextForPdf(text);
+    let s = size;
+    try{
+      while(out && font.widthOfTextAtSize(out, s) > maxWidth && s > 5.5){ s -= 0.35; }
+      if(font.widthOfTextAtSize(out, s) <= maxWidth) return {text:out, size:s};
+      while(out.length > 1 && font.widthOfTextAtSize(out + '…', s) > maxWidth){ out = out.slice(0, -1); }
+      if(out.length > 1) out += '…';
+    }catch(e){}
+    return {text:out, size:s};
+  }
+
+  function drawOverlayItems(pdfPage, overlayPage, fonts){
+    const width = pdfPage.getWidth();
+    const height = pdfPage.getHeight();
+    for(const item of (overlayPage.items || [])){
+      // V2.6.9: toda escrita gerada pelo sistema sai em negrito para ficar mais destacada.
+      let font = fonts.bold;
+      let x = item.xPct * width;
+      let y = item.yBottomPct * height + (item.baselineAdjustPt || 0);
+      let maxWidth = Math.max(10, (item.wPct || 0.2) * width);
+      let size = item.fontPt || 9;
+      let text = item.text;
+      if(item.isMark){
+        font = fonts.bold;
+        size = Math.max(8, Math.min(13, size));
+        maxWidth = 20;
+      }
+      let fitted = fitText(font, text, size, maxWidth);
+      try{
+        pdfPage.drawText(fitted.text, { x, y, size: fitted.size, font });
+      }catch(e){
+        // fallback para caracteres fora da codificação WinAnsi
+        const clean = String(fitted.text || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'');
+        try{ if(clean) pdfPage.drawText(clean, { x, y, size: fitted.size, font }); }catch(e2){}
+      }
+    }
+  }
+
+  async function appendPdfDocument(outDoc, baseBytes, overlayPages, fonts, docId){
+    const srcDoc = await PDFLib.PDFDocument.load(baseBytes, {ignoreEncryption:true});
+    let drawPages = overlayPages;
+
+    if(FORM_TEXT_FIELDS_V264[docId]){
+      const srcFonts = {
+        regular: await srcDoc.embedFont(PDFLib.StandardFonts.Helvetica),
+        bold: await srcDoc.embedFont(PDFLib.StandardFonts.HelveticaBold)
+      };
+      try{
+        const result = fillMappedFormDocumentV264(srcDoc, overlayPages, docId, srcFonts);
+        drawPages = filterOverlayPagesForUnmappedFields(overlayPages, result.usedIds);
+      }catch(e){
+        try{ console.warn('Falha ao preencher formulário mapeado; usando sobreposição por posição:', docId, e); }catch(_e){}
+        drawPages = overlayPages;
+      }
+      const srcPages = srcDoc.getPages();
+      for(let i=0;i<srcPages.length;i++){
+        const ov = (drawPages || [])[i];
+        if(ov) drawOverlayItems(srcPages[i], ov, srcFonts);
+      }
+    }
+
+    const pageIndices = srcDoc.getPageIndices();
+    const copied = await outDoc.copyPages(srcDoc, pageIndices);
+    for(let i=0;i<copied.length;i++){
+      const page = copied[i];
+      outDoc.addPage(page);
+      if(!FORM_TEXT_FIELDS_V264[docId]){
+        const ov = (overlayPages || [])[i];
+        if(ov) drawOverlayItems(page, ov, fonts);
+      }
+    }
+  }
+
+  async function appendAttachments(outDoc){
+    const atts = window.__attachments || [];
+    if(!atts.length) return;
+    for(const att of atts){
+      try{
+        if(att && att.kind === 'pdf' && att.blobUrl){
+          const bytes = await fetchArrayBuffer(att.blobUrl);
+          const src = await PDFLib.PDFDocument.load(bytes, {ignoreEncryption:true});
+          const pages = await outDoc.copyPages(src, src.getPageIndices());
+          pages.forEach(p => outDoc.addPage(p));
+        }else if(att && att.kind === 'image' && att.dataUrl){
+          const page = outDoc.addPage([595.28, 841.89]);
+          const img = await embedImageFromDataUrl(outDoc, att.dataUrl);
+          if(img){
+            const margin = 36;
+            const maxW = page.getWidth() - margin*2;
+            const maxH = page.getHeight() - margin*2;
+            const scale = Math.min(maxW / img.width, maxH / img.height);
+            const w = img.width * scale;
+            const h = img.height * scale;
+            page.drawImage(img, {x:(page.getWidth()-w)/2, y:(page.getHeight()-h)/2, width:w, height:h});
+          }
+        }
+      }catch(e){
+        try{ console.error('Falha ao anexar arquivo:', att && att.name, e); }catch(_){}
+      }
+    }
+  }
+
+  function dataUrlToBytes(dataUrl){
+    const base64 = String(dataUrl || '').split(',')[1] || '';
+    const bin = atob(base64);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
+  function convertImageDataUrlToPngDataUrl(dataUrl){
+    return new Promise((resolve, reject)=>{
+      const img = new Image();
+      img.onload = () => {
+        try{
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        }catch(e){ reject(e); }
+      };
+      img.onerror = () => reject(new Error('Não foi possível converter imagem anexada.'));
+      img.src = String(dataUrl || '');
+    });
+  }
+
+  async function embedImageFromDataUrl(outDoc, dataUrl){
+    const mime = String(dataUrl || '').slice(0,80).toLowerCase();
+    if(mime.includes('image/png')) return await outDoc.embedPng(dataUrlToBytes(dataUrl));
+    if(mime.includes('image/jpeg') || mime.includes('image/jpg')) return await outDoc.embedJpg(dataUrlToBytes(dataUrl));
+    // WEBP/outros formatos aceitos pelo input são convertidos para PNG via canvas.
+    const pngDataUrl = await convertImageDataUrlToPngDataUrl(dataUrl);
+    return await outDoc.embedPng(dataUrlToBytes(pngDataUrl));
+  }
+
+  async function prepareOverlayForItem(it){
+    const iframe = it.iframe;
+    const wrap = iframe && iframe.closest ? iframe.closest('.framewrap') : null;
+    const oldInline = wrap ? {
+      display: wrap.style.display,
+      position: wrap.style.position,
+      left: wrap.style.left,
+      top: wrap.style.top,
+      width: wrap.style.width,
+      height: wrap.style.height,
+      visibility: wrap.style.visibility,
+      pointerEvents: wrap.style.pointerEvents,
+      zIndex: wrap.style.zIndex
+    } : null;
+    try{
+      // Alguns documentos ficam em abas/instâncias ocultas. Para medir as posições reais,
+      // exibimos o iframe fora da tela e invisível somente durante a coleta das coordenadas.
+      if(wrap){
+        wrap.style.display = 'block';
+        wrap.style.position = 'absolute';
+        wrap.style.left = '-10000px';
+        wrap.style.top = '0';
+        wrap.style.width = '100%';
+        wrap.style.height = '100%';
+        wrap.style.visibility = 'hidden';
+        wrap.style.pointerEvents = 'none';
+        wrap.style.zIndex = '-1';
+      }
+      await sleep(80);
+      await ensureReady(iframe);
+      try{ await postToIframe(iframe, {type:'PREPARE_PRINT'}, 1200); }catch(e){}
+      await sleep(260);
+      return await extractOverlayPagesViaBridge(iframe, it.docId);
+    }finally{
+      try{ await postToIframe(iframe, {type:'RESTORE_VIEW'}, 900); }catch(e){}
+      if(wrap && oldInline){
+        wrap.style.display = oldInline.display;
+        wrap.style.position = oldInline.position;
+        wrap.style.left = oldInline.left;
+        wrap.style.top = oldInline.top;
+        wrap.style.width = oldInline.width;
+        wrap.style.height = oldInline.height;
+        wrap.style.visibility = oldInline.visibility;
+        wrap.style.pointerEvents = oldInline.pointerEvents;
+        wrap.style.zIndex = oldInline.zIndex;
+      }
+    }
+  }
+
+  async function generatePdfOriginal(seq, pdfFileName){
+    if(!window.PDFLib || !window.PDFLib.PDFDocument){
+      throw new Error('A biblioteca pdf-lib não carregou. Verifique a internet ou inclua a biblioteca localmente.');
+    }
+
+    let outDoc = null;
+    let fonts = null;
+    async function ensureOutDoc(){
+      if(!outDoc){
+        outDoc = await PDFLib.PDFDocument.create();
+        fonts = {
+          regular: await outDoc.embedFont(PDFLib.StandardFonts.Helvetica),
+          bold: await outDoc.embedFont(PDFLib.StandardFonts.HelveticaBold)
+        };
+      }
+      return outDoc;
+    }
+
+    const baseCache = {};
+    for(const it of seq){
+      const baseUrl = BASE_PDFS[it.docId];
+      if(!baseUrl) continue;
+      if(!baseCache[it.docId]) baseCache[it.docId] = await getBasePdfBytes(it.docId);
+      const overlayPages = await prepareOverlayForItem(it);
+
+      if(it.docId === 'proposta'){
+        const propostaDoc = await PDFLib.PDFDocument.load(baseCache[it.docId], {ignoreEncryption:true});
+        const propostaFonts = {
+          regular: await propostaDoc.embedFont(PDFLib.StandardFonts.Helvetica),
+          bold: await propostaDoc.embedFont(PDFLib.StandardFonts.HelveticaBold)
+        };
+        fillProposalFormDocumentV261(propostaDoc, overlayPages, propostaFonts);
+
+        if(!outDoc){
+          outDoc = propostaDoc;
+          fonts = propostaFonts;
+        }else{
+          const pages = await outDoc.copyPages(propostaDoc, propostaDoc.getPageIndices());
+          pages.forEach(p => outDoc.addPage(p));
+        }
+        continue;
+      }
+
+      await ensureOutDoc();
+      await appendPdfDocument(outDoc, baseCache[it.docId], overlayPages, fonts, it.docId);
+    }
+
+    await ensureOutDoc();
+    await appendAttachments(outDoc);
+
+	outDoc.setTitle((pdfFileName || getPdfFileName()).replace(/\.pdf$/i,''));
+	outDoc.setProducer('R-Proposta Fácil v1.2 - PDF final limpo');
+	return await outDoc.save({useObjectStreams:true, addDefaultPage:false, updateFieldAppearances:false});
+  }
+
+  let busy = false;
+
+  function downloadPdfBlob(blob, pdfFileName){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = pdfFileName || 'DOCUMENTO UNIFICADO.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(e){} }, 120000);
+  }
+
+  async function onPdfActionClick(ev, action){
+    if(busy) return;
+    busy = true;
+    const btn = ev && ev.currentTarget ? ev.currentTarget : null;
+    const oldTxt = btn ? btn.textContent : '';
+    const shouldView = action === 'view';
+    let pdfWindow = null;
+    try{
+      if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+
+      // VISUALIZAR PROPOSTA: mantém o fluxo da v2.8.1, abrindo a prévia em nova aba.
+      if(shouldView) pdfWindow = openPreparingPdfWindow();
+
+      if(btn){ btn.disabled = true; btn.textContent = shouldView ? 'ABRINDO PROPOSTA...' : 'BAIXANDO PROPOSTA...'; }
+
+      const seq = collectWrapsInOrder();
+      const validationProblems = await validateRequired(seq);
+      if(validationProblems && validationProblems.length){
+        try{ if(pdfWindow && !pdfWindow.closed) pdfWindow.close(); }catch(_e){}
+        showValidationProblems(validationProblems);
+        return;
+      }
+      if(!seq.length){
+        try{ if(pdfWindow && !pdfWindow.closed) pdfWindow.close(); }catch(_e){}
+        alert('Nenhum documento carregado para gerar PDF.');
+        return;
+      }
+
+      const pdfFileName = await getPdfFileNameSafe(seq);
+      const pdfBytes = await generatePdfOriginal(seq, pdfFileName);
+      const blob = new Blob([pdfBytes], {type:'application/pdf'});
+
+      if(shouldView){
+        const result = openPdfBlobNamed(blob, pdfFileName, pdfWindow);
+        if(!result.opened) downloadPdfBlob(blob, pdfFileName);
+        else setTimeout(()=>{ try{ URL.revokeObjectURL(result.url); }catch(e){} }, 120000);
+      }else{
+        // BAIXAR PROPOSTA: mantém o fluxo da v1_teste, baixando direto com o nome do titular.
+        downloadPdfBlob(blob, pdfFileName);
+      }
+    }catch(err){
+      try{ console.error(err); }catch(_){}
+      const msg = (err && err.message) ? err.message : 'Erro ao gerar PDF. Abra o console (F12) e envie o print do erro.';
+      if(shouldView){ try{ writePdfErrorWindow(pdfWindow, msg); }catch(_e){} }
+      try{ alert(msg); }catch(_){}
+    }finally{
+      if(btn){ btn.disabled = false; btn.textContent = oldTxt || (shouldView ? 'VISUALIZAR PROPOSTA' : 'BAIXAR PROPOSTA'); }
+      busy = false;
+    }
+  }
+
+  function attachGenerator(){
+    const viewBtn = document.getElementById('viewUnifiedBtn');
+    const downloadBtn = document.getElementById('downloadUnifiedBtn');
+    if(!viewBtn || !downloadBtn) return false;
+
+    const viewClone = viewBtn.cloneNode(true);
+    viewBtn.parentNode.replaceChild(viewClone, viewBtn);
+    viewClone.textContent = 'VER PROPOSTA';
+    viewClone.title = 'Visualizar a proposta final preenchida';
+    viewClone.addEventListener('click', (ev)=>onPdfActionClick(ev, 'view'), {capture:true});
+
+    const downloadClone = downloadBtn.cloneNode(true);
+    downloadBtn.parentNode.replaceChild(downloadClone, downloadBtn);
+    downloadClone.textContent = 'BAIXAR PROPOSTA';
+    downloadClone.title = 'Baixar a proposta final com o nome do titular';
+    downloadClone.addEventListener('click', (ev)=>onPdfActionClick(ev, 'download'), {capture:true});
+
+    return true;
+  }
+
+  // Aguarda o carregamento e assume os botões de visualizar/baixar com o motor PDF atual.
+  let tries = 0;
+  const timer = setInterval(()=>{
+    tries++;
+    if(attachGenerator() || tries > 25) clearInterval(timer);
+  }, 180);
+})();
+
+</script>
+
+<script>
+/* ===== v3.1 MOBILE: controlador da gaveta e dos atalhos ===== */
+(() => {
+  const mq = window.matchMedia('(max-width: 960px)');
+  const body = document.body;
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('mobileBackdrop');
+  const menuToggle = document.getElementById('mobileMenuToggle');
+  const docsBtn = document.getElementById('mobileDocsBtn');
+  const viewBtn = document.getElementById('mobileViewBtn');
+  const downloadBtn = document.getElementById('mobileDownloadBtn');
+  const docTitle = document.getElementById('mobileDocTitle');
+  const crumb = document.getElementById('crumb');
+
+  function isMobile(){ return mq.matches; }
+  function setMenu(open){
+    if(!isMobile()) open = false;
+    body.classList.toggle('mobile-menu-open', !!open);
+    if(menuToggle) menuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if(backdrop) backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
+  }
+  function openMenu(){ setMenu(true); }
+  function closeMenu(){ setMenu(false); }
+  function syncTitle(){
+    if(!docTitle) return;
+    const txt = crumb && crumb.textContent ? crumb.textContent.trim() : '';
+    docTitle.textContent = txt && txt !== '—' ? txt : 'Selecione um documento';
+  }
+  function proxyClick(targetId, mobileButton){
+    const target = document.getElementById(targetId);
+    if(!target || target.disabled) return;
+    mobileButton.disabled = true;
+    try{ target.click(); }
+    finally{
+      const timer = setInterval(() => {
+        const current = document.getElementById(targetId);
+        const busy = !!(current && current.disabled);
+        mobileButton.disabled = busy;
+        if(!busy) clearInterval(timer);
+      }, 180);
+      setTimeout(() => { clearInterval(timer); mobileButton.disabled = false; }, 120000);
+    }
+  }
+
+  menuToggle && menuToggle.addEventListener('click', () => body.classList.contains('mobile-menu-open') ? closeMenu() : openMenu());
+  docsBtn && docsBtn.addEventListener('click', openMenu);
+  backdrop && backdrop.addEventListener('click', closeMenu);
+  viewBtn && viewBtn.addEventListener('click', () => proxyClick('viewUnifiedBtn', viewBtn));
+  downloadBtn && downloadBtn.addEventListener('click', () => proxyClick('downloadUnifiedBtn', downloadBtn));
+
+  const menu = document.getElementById('menu');
+  menu && menu.addEventListener('click', (ev) => {
+    if(isMobile() && ev.target.closest('.item')) setTimeout(closeMenu, 80);
+  });
+  document.addEventListener('keydown', (ev) => { if(ev.key === 'Escape') closeMenu(); });
+  mq.addEventListener ? mq.addEventListener('change', closeMenu) : mq.addListener(closeMenu);
+
+  if(crumb){
+    new MutationObserver(syncTitle).observe(crumb, {childList:true,subtree:true,characterData:true});
+  }
+  syncTitle();
+
+  // Corrige a altura em navegadores móveis quando a barra de endereço aparece/desaparece.
+  function syncViewport(){
+    document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+  }
+  window.addEventListener('resize', syncViewport, {passive:true});
+  window.addEventListener('orientationchange', syncViewport, {passive:true});
+  syncViewport();
+})();
+</script>
+
+</body>
+</html>
