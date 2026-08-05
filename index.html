@@ -1653,7 +1653,7 @@
     await appendAttachments(outDoc);
 
 	outDoc.setTitle((pdfFileName || getPdfFileName()).replace(/\.pdf$/i,''));
-	outDoc.setProducer('R-Proposta Fácil v1.2 - PDF final limpo');
+	outDoc.setProducer('R-Proposta Fácil v2.1 - PDF final limpo');
 	return await outDoc.save({useObjectStreams:true, addDefaultPage:false, updateFieldAppearances:false});
   }
 

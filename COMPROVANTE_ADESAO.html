@@ -553,6 +553,7 @@ button[onclick*="toggleCalib"]{ display:none !important; }
           <option value="">PREENCHIDO AUTOMATICAMENTE</option>
           <option value="RESOLVE INTERMED">RESOLVE INTERMED</option>
           <option value="RESOLVE UNIMED">RESOLVE UNIMED</option>
+          <option value="UNIMED - PROFESSORES">UNIMED - PROFESSORES</option>
         </select>
       </div>
       <div>
@@ -811,7 +812,9 @@ button[onclick*="toggleCalib"]{ display:none !important; }
     // RESOLVE INTERMED usa vencimento e período do SISMUJOF
     ["RESOLVE INTERMED", "11", "ABRIL"],
     // RESOLVE UNIMED usa vencimento e período do SINTEPI
-    ["RESOLVE UNIMED", "5", "OUTUBRO"]
+    ["RESOLVE UNIMED", "5", "OUTUBRO"],
+    // UNIMED - PROFESSORES usa vencimento e período do SINPRO
+    ["UNIMED - PROFESSORES", "6", "JANEIRO"]
   ];
   const vencMap = {};
   const reajMap = {};
@@ -1824,7 +1827,7 @@ async function copiarJSON(){
     '4903':'SINSEP', '4970':'SINTEPI', '4690':'SINTUFPI'
   };
   const CONTRACT_DEP_V31 = {
-    'RESOLVE INTERMED':['11','ABRIL'], 'RESOLVE UNIMED':['5','OUTUBRO'],
+    'RESOLVE INTERMED':['11','ABRIL'], 'RESOLVE UNIMED':['5','OUTUBRO'], 'UNIMED - PROFESSORES':['6','JANEIRO'],
     'ACIP INTERMED':['11','NOVEMBRO'], 'ASSIFPI INTERMED':['11','MARÇO'], 'SINTUFPI INTERMED':['11','ABRIL'], 'SISMUJOF':['11','ABRIL'],
     'ACIP':['7','FEVEREIRO'], 'ADCESP':['20','JANEIRO'], 'ASSIFPI':['5','OUTUBRO'], 'CAU':['5','ABRIL'], 'CDL':['7','AGOSTO'],
     'CRECI':['10','JULHO'], 'CRF':['5','JULHO'], 'CRMV':['9','JULHO'], 'FESPPI':['10','OUTUBRO'], 'SENATEPI':['9','MARÇO'],
@@ -1927,6 +1930,7 @@ async function copiarJSON(){
     const contrato = normalize(data.contratoTexto || data.contratoValor || '');
     if(contrato === 'RESOLVE INTERMED') return 'INTERMED';
     if(contrato === 'RESOLVE UNIMED') return 'UNIMED';
+    if(contrato === 'UNIMED - PROFESSORES') return 'UNIMED';
     return '';
   }
   function resolveContract(data){
@@ -1934,6 +1938,7 @@ async function copiarJSON(){
     const key = normalize(raw);
     if(key === 'RESOLVE INTERMED') return 'RESOLVE INTERMED';
     if(key === 'RESOLVE UNIMED') return 'RESOLVE UNIMED';
+    if(key === 'UNIMED - PROFESSORES') return 'UNIMED - PROFESSORES';
     const num = onlyDigits(data.contratoValor || '');
     if(num && CONTRACT_MAP[num]) return CONTRACT_MAP[num];
     return raw || '';

@@ -144,7 +144,7 @@ button.secondary{background:#6b7280} button.light{background:#e5e7eb;color:#111}
   <div class="fg"><label>Vendedor *</label><input id="vendedor" value="SOCORRO MACHADO" readonly disabled aria-readonly="true" title="Vendedor fixo"></div>
   <div class="inline-calc"><div class="fg"><label>Valor do plano (R$) *</label><input id="valor_plano" inputmode="numeric"></div><div class="fg"><label>% da Taxa *</label><input id="pct_taxa" inputmode="numeric"></div><button type="button" id="btn_calc_taxa" class="orange" title="Calcular Taxa">=</button></div>
   <div class="taxa-isento-wrap"><div class="fg"><label>Taxa (R$) *</label><input id="taxa" inputmode="numeric" readonly title="Calculado automaticamente pelo botão ="></div><label class="isento-flag"><input type="checkbox" id="taxa_isento"> ISENTO</label></div>
-  <div class="fg"><label>Contrato *</label><div class="contrato-wrap"><select id="contrato_nome" required><option value="">SELECIONE O CONTRATO</option><option value="RESOLVE INTERMED">RESOLVE INTERMED</option><option value="RESOLVE UNIMED">RESOLVE UNIMED</option></select><input id="contrato" type="hidden" aria-hidden="true"></div></div>
+  <div class="fg"><label>Contrato *</label><div class="contrato-wrap"><select id="contrato_nome" required><option value="">SELECIONE O CONTRATO</option><option value="RESOLVE INTERMED">RESOLVE INTERMED</option><option value="RESOLVE UNIMED">RESOLVE UNIMED</option><option value="UNIMED - PROFESSORES">UNIMED - PROFESSORES</option></select><input id="contrato" type="hidden" aria-hidden="true"></div></div>
   </div>
  </section>
  <section class="form-section titular-pessoais">
@@ -939,8 +939,8 @@ document.addEventListener('DOMContentLoaded',()=>{applyPosAll();attachMoneyMask(
 </script>
 <div id="emailSuggest" class="email-suggest"></div>
 
-<script id="R_PROPOSTA_FACIL_RULES_V1_1">
-/* R-Proposta Fácil v1.2: vendedor fixo, planos filtrados e nomes completos INTERMED. */
+<script id="R_PROPOSTA_FACIL_RULES_V2_1">
+/* R-Proposta Fácil v2.1: inclui o contrato UNIMED - PROFESSORES com plano exclusivo. */
 (function(){
   const PLANOS = {
     'RESOLVE INTERMED': [
@@ -952,6 +952,9 @@ document.addEventListener('DOMContentLoaded',()=>{applyPosAll();attachMoneyMask(
       { nome:'UNIMULTI EMPRESARIAL ESPECIAL', codigo:'473301151' },
       { nome:'UNIVIDA BÁSICO', codigo:'473307150' },
       { nome:'UNIVIDA ESPECIAL', codigo:'473303157' }
+    ],
+    'UNIMED - PROFESSORES': [
+      { nome:'UNIMULTI EMPRESARIAL ESPECIAL', codigo:'473301151' }
     ]
   };
   function $(id){ return document.getElementById(id); }
