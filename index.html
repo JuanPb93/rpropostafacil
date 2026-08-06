@@ -188,6 +188,59 @@
   .content{padding:10px;}
 }
 
+
+
+/* ===== v3.4.10: editor de proposta em tela cheia ===== */
+.editProposalBtn{width:100%;margin:12px 0 2px;padding:13px 12px;border-radius:14px;border:1px solid rgba(96,165,250,.58);background:rgba(37,99,235,.18);color:#bfdbfe;font-weight:900;font-size:14px;cursor:pointer;}
+.editProposalBtn:hover{background:rgba(37,99,235,.26);}
+.editorOverlay{position:fixed;inset:0;display:none;background:#0b1220;z-index:90000;}
+.editorOverlay.open{display:block;}
+.editorShell{height:100dvh;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;color:#e5e7eb;}
+.editorHeader{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#111827;border-bottom:1px solid rgba(255,255,255,.12);}
+.editorHeaderText{min-width:0;flex:1;}
+.editorHeaderTitle{font-weight:900;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.editorHeaderMeta{font-size:12px;color:#9ca3af;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.editorClose{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#fff;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer;}
+.editorToolbar{display:flex;align-items:center;gap:10px;padding:9px 16px;background:#0f172a;border-bottom:1px solid rgba(255,255,255,.1);}
+.editorPageLabel{font-weight:900;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.editorCounter{font-size:12px;color:#cbd5e1;white-space:nowrap;}
+.editorInstBtn{display:none;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#e5e7eb;border-radius:10px;padding:8px 10px;font-weight:900;cursor:pointer;}
+.editorInstBtn.show{display:inline-flex;}
+.editorInstBtn.add{background:rgba(34,197,94,.15);color:#bbf7d0;border-color:rgba(34,197,94,.38);}
+.editorInstBtn.remove{color:#fecaca;border-color:rgba(248,113,113,.35);}
+.editorStage{position:relative;min-height:0;background:#eef2f7;overflow:hidden;}
+.editorStage .editorFrameWrap{display:none;width:100%;height:100%;}
+.editorStage .editorFrameWrap.active{display:block;}
+.editorStage iframe{display:block;width:100%;height:100%;border:0;background:#f5f6f8;}
+.editorFooter{display:grid;grid-template-columns:minmax(105px,.9fr) minmax(175px,1.05fr) minmax(210px,1.35fr) minmax(105px,.9fr);gap:10px;padding:10px 16px;background:#111827;border-top:1px solid rgba(255,255,255,.12);}
+.editorNavBtn,.editorViewBtn,.editorGenerateBtn{min-height:48px;border-radius:12px;font-weight:900;cursor:pointer;}
+.editorNavBtn{border:1px solid rgba(255,255,255,.17);background:rgba(255,255,255,.07);color:#fff;}
+.editorViewBtn{border:1px solid #60a5fa;background:rgba(37,99,235,.22);color:#dbeafe;font-size:14px;}
+.editorViewBtn:hover{background:rgba(37,99,235,.32);}
+.editorNavBtn:disabled,.editorViewBtn:disabled,.editorGenerateBtn:disabled,.editorInstBtn:disabled{opacity:.42;cursor:not-allowed;}
+.editorGenerateBtn{border:1px solid #ff7a00;background:#ff7a00;color:#111827;font-size:15px;}
+.editorLoading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(11,18,32,.9);z-index:5;color:#fff;text-align:center;padding:24px;}
+.editorLoading.show{display:flex;}
+.editorLoadingBox{max-width:520px;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:18px 22px;background:#111827;}
+.editorLoadingTitle{font-weight:900;font-size:18px;margin-bottom:6px;}
+.editorLoadingText{font-size:13px;color:#cbd5e1;line-height:1.4;}
+.editorLoadingActions{display:none;justify-content:center;gap:10px;margin-top:14px;flex-wrap:wrap;}
+.editorLoadingActions.show{display:flex;}
+.editorLoadingAction{border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:9px 13px;font-weight:900;cursor:pointer;background:rgba(255,255,255,.08);color:#fff;}
+.editorLoadingAction.retry{background:#2563eb;border-color:#60a5fa;}
+@media(max-width:960px){
+  .editProposalBtn{min-height:48px;}
+  .editorHeader{padding:9px 10px;}
+  .editorHeaderTitle{font-size:15px;}
+  .editorToolbar{padding:8px 10px;gap:6px;overflow-x:auto;}
+  .editorPageLabel{min-width:170px;font-size:13px;}
+  .editorInstBtn{padding:7px 8px;font-size:11px;white-space:nowrap;}
+  .editorFooter{grid-template-columns:58px minmax(0,.9fr) minmax(0,1.1fr) 58px;padding:8px;gap:7px;}
+  .editorNavBtn{font-size:0;}
+  .editorNavBtn::first-letter{font-size:22px;}
+  .editorViewBtn,.editorGenerateBtn{font-size:11px;padding:4px;}
+}
+
 </style>
 <!-- Geração do PDF final no navegador -->
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -213,6 +266,8 @@
     </div>
 
     <div class="menu" id="menu"></div>
+<button id="editExistingBtn" class="editProposalBtn" type="button">EDITAR PROPOSTA EXISTENTE</button>
+<input id="editExistingInput" type="file" accept="application/pdf,.pdf" style="display:none"/>
 <button id="viewUnifiedBtn" class="masterbtn" type="button">VER PROPOSTA</button>
 <button id="downloadUnifiedBtn" class="masterbtn" type="button">BAIXAR PROPOSTA</button>
 
@@ -247,6 +302,44 @@
   <button id="mobileViewBtn" class="mobileViewBtn" type="button">VER<br>PROPOSTA</button>
   <button id="mobileDownloadBtn" class="mobileDownloadBtn" type="button">BAIXAR<br>PROPOSTA</button>
 </div>
+
+
+<div id="editorOverlay" class="editorOverlay" role="dialog" aria-modal="true" aria-labelledby="editorHeaderTitle">
+  <div class="editorShell">
+    <header class="editorHeader">
+      <div class="editorHeaderText">
+        <div id="editorHeaderTitle" class="editorHeaderTitle">MODO DE EDIÇÃO — PROPOSTA CARREGADA</div>
+        <div id="editorHeaderMeta" class="editorHeaderMeta">—</div>
+      </div>
+      <button id="editorCloseBtn" class="editorClose" type="button">FECHAR</button>
+    </header>
+    <div class="editorToolbar">
+      <div id="editorPageLabel" class="editorPageLabel">—</div>
+      <div id="editorCounter" class="editorCounter">Página 0 de 0</div>
+      <button id="editorAddInstBtn" class="editorInstBtn add" type="button">+ INSTÂNCIA</button>
+      <button id="editorRemoveInstBtn" class="editorInstBtn remove" type="button">REMOVER</button>
+    </div>
+    <main id="editorStage" class="editorStage">
+      <div id="editorLoading" class="editorLoading">
+        <div class="editorLoadingBox">
+          <div id="editorLoadingTitle" class="editorLoadingTitle">Carregando proposta...</div>
+          <div id="editorLoadingText" class="editorLoadingText">Lendo os dados internos e preparando os formulários para edição.</div>
+          <div id="editorLoadingActions" class="editorLoadingActions">
+            <button id="editorRetryBtn" class="editorLoadingAction retry" type="button">TENTAR NOVAMENTE</button>
+            <button id="editorCancelLoadBtn" class="editorLoadingAction" type="button">FECHAR</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="editorFooter">
+      <button id="editorPrevBtn" class="editorNavBtn" type="button">← ANTERIOR</button>
+      <button id="editorViewBtn" class="editorViewBtn" type="button" title="Abrir o PDF atualizado no visualizador do navegador. Use Imprimir para escolher páginas específicas.">VER PROPOSTA</button>
+      <button id="editorGenerateBtn" class="editorGenerateBtn" type="button">BAIXAR PDF ATUALIZADO</button>
+      <button id="editorNextBtn" class="editorNavBtn" type="button">PRÓXIMA →</button>
+    </footer>
+  </div>
+</div>
+
 
 <div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal">
@@ -516,6 +609,7 @@
   window.__propostaMirrorV31Sync = syncPropostaMirrorV31;
 
   window.addEventListener('message', function(ev){
+    if(window.__rpropEditorWindows && window.__rpropEditorWindows.has(ev.source)) return;
     const msg = ev.data;
     if(!msg || typeof msg !== 'object' || msg.__mirrorV31 !== true) return;
 
@@ -795,6 +889,170 @@
       if(items && items.length) groups.push({title, items});
     }
     return groups;
+  }
+
+
+  function bytesToBase64V342(bytes){
+    let out = '';
+    const chunk = 0x8000;
+    for(let i=0;i<bytes.length;i+=chunk){
+      const part = bytes.subarray(i, Math.min(bytes.length, i+chunk));
+      out += String.fromCharCode.apply(null, part);
+    }
+    return btoa(out);
+  }
+
+  const RPROP_DATA_FIELD_V343 = '__RPROPOSTA_DADOS_V1__';
+
+  function embedEditableDataFieldV343(pdfDoc, jsonText){
+    const encoded = bytesToBase64V342(new TextEncoder().encode(jsonText));
+    const form = pdfDoc.getForm();
+    let field = null;
+    try{ field = form.getTextField(RPROP_DATA_FIELD_V343); }catch(e){}
+    if(!field){
+      field = form.createTextField(RPROP_DATA_FIELD_V343);
+      const firstPage = pdfDoc.getPages()[0];
+      if(!firstPage) throw new Error('O PDF não possui páginas para armazenar os dados internos de edição.');
+      // Widget minúsculo e fora da página: mantém o campo interno sem qualquer conteúdo visível ou imprimível.
+      field.addToPage(firstPage, {x:-1000, y:-1000, width:1, height:1, borderWidth:0});
+    }
+    try{ field.enableReadOnly(); }catch(e){}
+    try{ field.disableExporting(); }catch(e){}
+    field.setText(encoded);
+    return true;
+  }
+
+  function sha256PureV342(text){
+    const bytes = new TextEncoder().encode(text);
+    const K = new Uint32Array([
+      0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+      0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+      0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+      0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+      0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+      0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+      0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+      0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+    ]);
+    const bitLen = bytes.length * 8;
+    const total = Math.ceil((bytes.length + 9) / 64) * 64;
+    const data = new Uint8Array(total);
+    data.set(bytes); data[bytes.length] = 0x80;
+    const view = new DataView(data.buffer);
+    const hi = Math.floor(bitLen / 0x100000000);
+    const lo = bitLen >>> 0;
+    view.setUint32(total - 8, hi, false); view.setUint32(total - 4, lo, false);
+    let h0=0x6a09e667,h1=0xbb67ae85,h2=0x3c6ef372,h3=0xa54ff53a,h4=0x510e527f,h5=0x9b05688c,h6=0x1f83d9ab,h7=0x5be0cd19;
+    const w = new Uint32Array(64);
+    const rotr = (x,n) => (x>>>n) | (x<<(32-n));
+    for(let off=0; off<total; off+=64){
+      for(let i=0;i<16;i++) w[i]=view.getUint32(off+i*4,false);
+      for(let i=16;i<64;i++){
+        const s0=rotr(w[i-15],7)^rotr(w[i-15],18)^(w[i-15]>>>3);
+        const s1=rotr(w[i-2],17)^rotr(w[i-2],19)^(w[i-2]>>>10);
+        w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;
+      }
+      let a=h0,b=h1,c=h2,d=h3,e=h4,f=h5,g=h6,h=h7;
+      for(let i=0;i<64;i++){
+        const S1=rotr(e,6)^rotr(e,11)^rotr(e,25);
+        const ch=(e&f)^((~e)&g);
+        const t1=(h+S1+ch+K[i]+w[i])>>>0;
+        const S0=rotr(a,2)^rotr(a,13)^rotr(a,22);
+        const maj=(a&b)^(a&c)^(b&c);
+        const t2=(S0+maj)>>>0;
+        h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;
+      }
+      h0=(h0+a)>>>0;h1=(h1+b)>>>0;h2=(h2+c)>>>0;h3=(h3+d)>>>0;
+      h4=(h4+e)>>>0;h5=(h5+f)>>>0;h6=(h6+g)>>>0;h7=(h7+h)>>>0;
+    }
+    return [h0,h1,h2,h3,h4,h5,h6,h7].map(x=>x.toString(16).padStart(8,'0')).join('');
+  }
+
+  window.__rpropSha256PureV342 = window.__rpropSha256PureV342 || sha256PureV342;
+
+  async function sha256HexV342(text){
+    try{
+      const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(hash)).map(x => x.toString(16).padStart(2,'0')).join('');
+    }catch(e){
+      return sha256PureV342(text);
+    }
+  }
+
+  async function collectEditableStateV342(seq){
+    const docs = {};
+    for(const it of (seq || [])){
+      const resp = await postToIframe(it.iframe, {type:'EDITOR_EXPORT_V342'}, 2600);
+      if(!resp || resp.type !== 'EDITOR_EXPORT_V342_RESULT' || !resp.ok){
+        throw new Error('Não foi possível guardar os dados editáveis de ' + (DOC_TITLES[it.docId] || it.docId) + '.');
+      }
+      if(!docs[it.docId]) docs[it.docId] = [];
+      docs[it.docId].push({inst:Number(it.inst || 1), controls:Array.isArray(resp.controls) ? resp.controls : []});
+    }
+    const counts = {};
+    Object.keys(docs).forEach(id => counts[id] = docs[id].length);
+    return {docs, counts};
+  }
+
+  function stateFieldV342(state, docId, id){
+    try{
+      const first = state.docs[docId][0];
+      const item = first.controls.find(x => x.id === id || x.key === 'id:' + id);
+      return item ? String(item.value || '') : '';
+    }catch(e){ return ''; }
+  }
+
+  function stateEntryForItemV348(state, it){
+    try{
+      const entries = state && state.docs && Array.isArray(state.docs[it.docId]) ? state.docs[it.docId] : [];
+      const wanted = Number(it.inst || 1);
+      return entries.find(entry => Number(entry.inst || 1) === wanted) || entries[wanted - 1] || null;
+    }catch(e){ return null; }
+  }
+
+  async function synchronizeEditorFramesForPdfV348(seq){
+    const snapshot = await collectEditableStateV342(seq);
+    for(const it of (seq || [])){
+      const entry = stateEntryForItemV348(snapshot, it);
+      if(!entry) continue;
+      const response = await postToIframe(it.iframe, {
+        type:'EDITOR_IMPORT_V342',
+        controls:Array.isArray(entry.controls) ? entry.controls : []
+      }, 15000);
+      if(!response || response.type !== 'EDITOR_IMPORT_V342_RESULT' || !response.ok){
+        throw new Error('Não foi possível sincronizar as alterações de ' + (DOC_TITLES[it.docId] || it.docId) + ' antes de gerar o PDF.');
+      }
+    }
+    await sleep(220);
+    return snapshot;
+  }
+
+  async function buildEditablePayloadV342(seq, corePageCount, totalPageCount, pdfFileName, options){
+    options = options || {};
+    const state = await collectEditableStateV342(seq);
+    const base = options.basePayload || {};
+    const revision = Math.max(1, Number(base.revision || 0) + 1);
+    const payload = {
+      magic:'RPROPOSTA_EDITAVEL',
+      schema:'rproposta.edit.v1',
+      appVersion:'3.4.10',
+      generatedAt:new Date().toISOString(),
+      proposalId:base.proposalId || (crypto.randomUUID ? crypto.randomUUID() : ('RPROP-' + Date.now() + '-' + Math.random().toString(16).slice(2))),
+      revision,
+      sourceFileName:String(pdfFileName || ''),
+      corePageCount:Number(corePageCount || 0),
+      attachmentPageCount:Math.max(0, Number(totalPageCount || 0) - Number(corePageCount || 0)),
+      counts:state.counts,
+      docs:state.docs,
+      summary:{
+        titular:stateFieldV342(state,'proposta','nome_titular'),
+        contrato:stateFieldV342(state,'proposta','contrato_nome'),
+        plano:stateFieldV342(state,'proposta','nome_plano')
+      }
+    };
+    const checksumBase = JSON.stringify(payload);
+    payload.checksum = await sha256HexV342(checksumBase);
+    return payload;
   }
 
   function sanitizePdfBaseName(value){
@@ -1317,6 +1575,8 @@
       TELEFONE_TERMO_CONSENTIMENTO: 'center'
     },
     comprov: {
+      NOME_BENEFICIARIO_COMPROVANTE_ADESAO: 'center',
+      NOME_BENEFICIARIO_AUTO_COMPROVANTE_ADESAO: 'center',
       PRESTADORA_COMPROVANTE_ADESAO: 'center',
       DESISTENCIA_ADESAO_COMPROVANTE_ADESAO: 'center',
       DIA_COMPROVANTE_ADESAO: 'center',
@@ -1342,6 +1602,42 @@
       else if(desired === 'left') val = (TA.Left != null ? TA.Left : 0);
       if(val != null && tx.setAlignment) tx.setAlignment(val);
     }catch(_e){}
+  }
+
+  // V3.4.1: os dois nomes do COMPROVANTE permanecem no tamanho atual e
+  // reduzem somente quando necessário para caber integralmente no campo.
+  function getTextFieldUsableWidthV341(tx){
+    try{
+      const acro = tx && tx.acroField;
+      const widgets = acro && acro.getWidgets ? acro.getWidgets() : [];
+      for(const widget of widgets){
+        if(!widget || !widget.getRectangle) continue;
+        const rect = widget.getRectangle();
+        const width = rect && Number(rect.width);
+        if(Number.isFinite(width) && width > 0) return Math.max(4, width - 4);
+      }
+    }catch(_e){}
+    return null;
+  }
+
+  function getMappedFormFontSizeV341(docId, overlayId, fieldName, tx, value, fonts){
+    let size = getMappedFormFontSizeV266(docId, overlayId, fieldName);
+    const isCenteredBeneficiaryName = docId === 'comprov' &&
+      (overlayId === 'out_nome1' || overlayId === 'out_nome2');
+    if(!isCenteredBeneficiaryName || !value) return size;
+
+    try{
+      const font = fonts && (fonts.bold || fonts.regular);
+      const maxWidth = getTextFieldUsableWidthV341(tx);
+      if(!font || !maxWidth || !font.widthOfTextAtSize) return size;
+      const measuredWidth = font.widthOfTextAtSize(value, size);
+      if(measuredWidth > maxWidth){
+        // A largura do texto é proporcional ao tamanho da fonte: reduz exatamente
+        // o necessário, com uma pequena margem interna para evitar qualquer corte.
+        size = Math.max(0.1, size * (maxWidth / measuredWidth) * 0.98);
+      }
+    }catch(_e){}
+    return size;
   }
 
 
@@ -1390,7 +1686,7 @@
       try{
         const tx = form.getTextField(fieldName);
         tx.setText(value);
-        try{ tx.setFontSize(getMappedFormFontSizeV266(docId, overlayId, fieldName)); }catch(_e){}
+        try{ tx.setFontSize(getMappedFormFontSizeV341(docId, overlayId, fieldName, tx, value, fonts)); }catch(_e){}
         applyTextFieldAlignmentV268(tx, getMappedFormAlignmentV268(docId, fieldName));
         try{ if(fonts && fonts.bold && tx.updateAppearances) tx.updateAppearances(fonts.bold); }catch(_e){}
         setFieldWidgetsNeutral(tx, pdfDoc);
@@ -1602,7 +1898,8 @@
     }
   }
 
-  async function generatePdfOriginal(seq, pdfFileName){
+  async function generatePdfOriginal(seq, pdfFileName, options){
+    options = options || {};
     if(!window.PDFLib || !window.PDFLib.PDFDocument){
       throw new Error('A biblioteca pdf-lib não carregou. Verifique a internet ou inclua a biblioteca localmente.');
     }
@@ -1650,11 +1947,45 @@
     }
 
     await ensureOutDoc();
-    await appendAttachments(outDoc);
+    const corePageCount = outDoc.getPageCount();
 
-	outDoc.setTitle((pdfFileName || getPdfFileName()).replace(/\.pdf$/i,''));
-	outDoc.setProducer('R-Proposta Fácil v2.1 - PDF final limpo');
-	return await outDoc.save({useObjectStreams:true, addDefaultPage:false, updateFieldAppearances:false});
+    // No modo de edição, preserva as páginas anexadas ao PDF original.
+    if(options.originalPdfBytes && Number(options.originalCorePageCount) >= 0){
+      try{
+        const originalDoc = await PDFLib.PDFDocument.load(options.originalPdfBytes, {ignoreEncryption:true});
+        const start = Math.max(0, Math.min(originalDoc.getPageCount(), Number(options.originalCorePageCount || 0)));
+        const indexes = [];
+        for(let i=start;i<originalDoc.getPageCount();i++) indexes.push(i);
+        if(indexes.length){
+          const copied = await outDoc.copyPages(originalDoc, indexes);
+          copied.forEach(page => outDoc.addPage(page));
+        }
+      }catch(e){
+        try{ console.warn('Não foi possível preservar os anexos do PDF original.', e); }catch(_e){}
+      }
+    }
+
+    if(!options.skipCurrentAttachments) await appendAttachments(outDoc);
+
+    outDoc.setTitle((pdfFileName || getPdfFileName()).replace(/\.pdf$/i,''));
+    outDoc.setProducer('R-Proposta Fácil v3.1 - PDF final editável');
+
+    const payload = await buildEditablePayloadV342(seq, corePageCount, outDoc.getPageCount(), pdfFileName, options);
+    const jsonText = JSON.stringify(payload);
+    if(typeof outDoc.attach !== 'function'){
+      throw new Error('Esta versão da biblioteca PDF não oferece suporte ao armazenamento interno dos dados de edição.');
+    }
+    await outDoc.attach(new TextEncoder().encode(jsonText), 'rproposta-dados.json', {
+      mimeType:'application/json',
+      description:'Dados internos para edição no R-Proposta Fácil',
+      creationDate:new Date(),
+      modificationDate:new Date()
+    });
+    embedEditableDataFieldV343(outDoc, jsonText);
+
+    // Compatibilidade máxima com Adobe Acrobat: o arquivo termina no %%EOF oficial,
+    // sem qualquer marcador ou conteúdo acrescentado depois do encerramento do PDF.
+    return await outDoc.save({useObjectStreams:false, addDefaultPage:false, updateFieldAppearances:false});
   }
 
   let busy = false;
@@ -1747,6 +2078,17 @@
     tries++;
     if(attachGenerator() || tries > 25) clearInterval(timer);
   }, 180);
+
+  window.__rpropPdfEngineV342 = {
+    generatePdfOriginal,
+    validateRequired,
+    getPdfFileNameSafe,
+    downloadPdfBlob,
+    openPdfBlobNamed,
+    collectWrapsInOrder,
+    showValidationProblems,
+    synchronizeEditorFramesForPdfV348
+  };
 })();
 
 </script>
@@ -1820,6 +2162,607 @@
   window.addEventListener('resize', syncViewport, {passive:true});
   window.addEventListener('orientationchange', syncViewport, {passive:true});
   syncViewport();
+})();
+</script>
+
+
+<script>
+/* ===== v3.4.10: editor isolado, estável e com tentativa novamente ===== */
+(() => {
+  const RPROP_DATA_FIELD_V343 = '__RPROPOSTA_DADOS_V1__';
+  if(window.__rpropEditorControllerV344) return;
+  window.__rpropEditorControllerV344 = true;
+
+  const DOCS = {
+    proposta:{title:'PROPOSTA COLETIVO POR ADESÃO',file:'PROPOSTA_COLETIVO_POR_ADESAO.html',min:1,max:1},
+    carencia:{title:'TERMO DE CARÊNCIA',file:'TERMO_DE_CARENCIA.html',min:1,max:5},
+    carta:{title:'CARTA ANS',file:'CARTA_ANS.html',min:1,max:5},
+    consent:{title:'TERMO DE CONSENTIMENTO',file:'TERMO_DE_CONSENTIMENTO.html',min:1,max:1},
+    comprov:{title:'COMPROVANTE DE ADESÃO',file:'COMPROVANTE_ADESAO.html',min:1,max:1}
+  };
+  const ORDER = ['proposta','carencia','carta','consent','comprov'];
+
+  const MOVEMENT_EDIT_KEYS = {
+    PROGRAMADA:[
+      'name:mov|value:prog_nova','name:mov|value:prog_incl_dep','name:mov|value:prog_migr_int','name:mov|value:prog_mud_mod'
+    ],
+    IMEDIATA:[
+      'name:mov|value:imm_nova','name:mov|value:imm_rn','name:mov|value:imm_dependente','name:mov|value:imm_mud_tit','name:mov|value:imm_port_esp'
+    ]
+  };
+  const ALL_MOVEMENT_EDIT_KEYS = new Set([].concat(MOVEMENT_EDIT_KEYS.PROGRAMADA, MOVEMENT_EDIT_KEYS.IMEDIATA));
+
+  const editable = {
+    proposta:[
+      'id:valor_plano','id:pct_taxa','id:btn_calc_taxa','id:taxa_isento','id:contrato_nome',
+      'id:nome_titular','id:cpf_titular','id:data_titular','id:cidade_titular','id:uf_titular','id:sexo_titular','id:estado_civil','id:email_titular','id:fone','id:cns_titular',
+      'id:cep','id:logradouro','id:numero','id:bairro','id:cidade','id:estado','id:complemento',
+      'data:CAR:T','data:CAR:D1','data:CAR:D2','data:CAR:D3','data:CAR:D4',
+      'data:PORT:T','data:PORT:D1','data:PORT:D2','data:PORT:D3','data:PORT:D4',
+      'data:SUM:T','data:SUM:D1','data:SUM:D2','data:SUM:D3','data:SUM:D4','id:nome_plano',
+      'id:dep1','id:cpf_d1','id:data_d1','id:cidade_d1','id:uf_d1','id:vinculo_d1','id:estado_civil_d1','id:email_d1','id:telefone_d1','id:cns_d1',
+      'id:dep2','id:cpf_d2','id:data_d2','id:cidade_d2','id:uf_d2','id:vinculo_d2','id:estado_civil_d2','id:email_d2','id:telefone_d2','id:cns_d2',
+      'id:dep3','id:cpf_d3','id:data_d3','id:cidade_d3','id:uf_d3','id:vinculo_d3','id:estado_civil_d3','id:email_d3','id:telefone_d3','id:cns_d3',
+      'id:dep4','id:cpf_d4','id:data_d4','id:cidade_d4','id:uf_d4','id:vinculo_d4','id:estado_civil_d4','id:email_d4','id:telefone_d4','id:cns_d4'
+    ],
+    carencia:['id:nome_benef','id:car_urgencia','id:car_consultas','id:car_ex_basicos','id:car_ex_especiais','id:car_internacoes','id:car_cirurgias','id:car_parto','id:car_dlp'],
+    carta:['id:nome_benef'],
+    consent:['id:email','id:ddd','id:telefone'],
+    comprov:['id:nome_benef','id:prestadora','id:plano_contrato','id:ativ_prog','id:ativ_imed','id:ativ_data','id:valor_mensal','id:contrato','id:desist_mes','id:port_data']
+  };
+
+  function movementModeFromOriginalState(page){
+    if(!page || page.docId !== 'proposta') return '';
+    const controls = Array.isArray(page.stateEntry && page.stateEntry.controls) ? page.stateEntry.controls : [];
+    const checked = controls.find(item => item && item.name === 'mov' && item.checked === true);
+    const value = checked ? String(checked.value || '') : '';
+    if(value.startsWith('imm_')) return 'IMEDIATA';
+    if(value.startsWith('prog_')) return 'PROGRAMADA';
+
+    // Compatibilidade defensiva com cargas antigas em que o nome possa não ter sido preservado.
+    const checkedByKey = controls.find(item => item && item.checked === true && String(item.key || '').startsWith('name:mov|value:'));
+    const keyValue = checkedByKey ? String(checkedByKey.key || '').split('|value:')[1] || '' : '';
+    if(keyValue.startsWith('imm_')) return 'IMEDIATA';
+    if(keyValue.startsWith('prog_')) return 'PROGRAMADA';
+
+    // Propostas válidas sempre possuem uma movimentação. O padrão programado mantém compatibilidade com versões anteriores.
+    return 'PROGRAMADA';
+  }
+
+  function editableKeysForPage(page){
+    const base = (editable[page.docId] || []).filter(key => !ALL_MOVEMENT_EDIT_KEYS.has(key));
+    if(page.docId !== 'proposta') return base;
+
+    // No modo de edição, a movimentação original serve apenas para carregar
+    // a seleção atual. Todas as opções programadas e imediatas permanecem
+    // liberadas, e o próprio grupo de rádio garante uma única escolha ativa.
+    return base.concat(Array.from(ALL_MOVEMENT_EDIT_KEYS));
+  }
+
+  const $ = id => document.getElementById(id);
+  const overlay = $('editorOverlay');
+  const stage = $('editorStage');
+  const loading = $('editorLoading');
+  const loadingActions = $('editorLoadingActions');
+  const retryBtn = $('editorRetryBtn');
+  const cancelLoadBtn = $('editorCancelLoadBtn');
+  const fileInput = $('editExistingInput');
+  const openBtn = $('editExistingBtn');
+  const prevBtn = $('editorPrevBtn');
+  const nextBtn = $('editorNextBtn');
+  const viewBtn = $('editorViewBtn');
+  const generateBtn = $('editorGenerateBtn');
+  const addBtn = $('editorAddInstBtn');
+  const removeBtn = $('editorRemoveInstBtn');
+
+  let pages = [];
+  let currentIndex = 0;
+  let loadedPayload = null;
+  let originalPdfBytes = null;
+  let sourceFileName = '';
+  let preparing = false;
+  window.__rpropEditorWindows = window.__rpropEditorWindows || new Set();
+
+  function delay(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+  function setLoading(show, title, text, actions){
+    if(title) $('editorLoadingTitle').textContent = title;
+    if(text) $('editorLoadingText').textContent = text;
+    loading.classList.toggle('show', !!show);
+    loadingActions.classList.toggle('show', !!(show && actions));
+  }
+
+  function base64ToUtf8(value){
+    const bin = atob(value);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  async function sha256HexEditorV342(text){
+    try{
+      const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(hash)).map(x => x.toString(16).padStart(2,'0')).join('');
+    }catch(e){
+      if(typeof window.__rpropSha256PureV342 === 'function') return window.__rpropSha256PureV342(text);
+      throw e;
+    }
+  }
+
+  async function verifyPayloadV342(payload){
+    if(!payload || !payload.checksum) return true;
+    const clone = JSON.parse(JSON.stringify(payload));
+    const expected = String(clone.checksum || '');
+    delete clone.checksum;
+    const actual = await sha256HexEditorV342(JSON.stringify(clone));
+    if(actual !== expected) throw new Error('Os dados internos do PDF falharam na verificação de integridade.');
+    return true;
+  }
+
+  function validatePayloadFormatV343(payload){
+    if(!payload || payload.magic !== 'RPROPOSTA_EDITAVEL' || payload.schema !== 'rproposta.edit.v1'){
+      throw new Error('O formato dos dados editáveis não é reconhecido por esta versão.');
+    }
+    return payload;
+  }
+
+  async function extractPayloadFromHiddenFieldV343(bytes){
+    if(!window.PDFLib || !window.PDFLib.PDFDocument){
+      throw new Error('A biblioteca de PDF ainda não terminou de carregar.');
+    }
+    const pdfDoc = await PDFLib.PDFDocument.load(bytes.slice(), {ignoreEncryption:true, updateMetadata:false});
+    const form = pdfDoc.getForm();
+    const field = form.getTextField(RPROP_DATA_FIELD_V343);
+    const encoded = String(field.getText() || '').replace(/\s+/g, '');
+    if(!encoded) throw new Error('O campo interno de edição está vazio.');
+    return validatePayloadFormatV343(JSON.parse(base64ToUtf8(encoded)));
+  }
+
+  function extractPayloadFromLegacyMarkerV342(bytes){
+    const raw = new TextDecoder('latin1').decode(bytes);
+    const startTag = '%RPROP_JSON_BEGIN_V1';
+    const endTag = '%RPROP_JSON_END_V1';
+    const start = raw.lastIndexOf(startTag);
+    if(start < 0) throw new Error('Marcador legado não encontrado.');
+    const end = raw.indexOf(endTag, start + startTag.length);
+    if(end < 0) throw new Error('Os dados internos legados deste PDF estão incompletos.');
+    const block = raw.slice(start + startTag.length, end);
+    const encoded = block.split(/\r?\n/).map(line => line.trim().replace(/^%/, '')).join('');
+    return validatePayloadFormatV343(JSON.parse(base64ToUtf8(encoded)));
+  }
+
+  async function extractPayload(bytes){
+    try{
+      return await extractPayloadFromHiddenFieldV343(bytes);
+    }catch(hiddenError){
+      try{ return extractPayloadFromLegacyMarkerV342(bytes); }
+      catch(legacyError){
+        throw new Error('Este PDF não contém dados internos compatíveis para edição. Gere a proposta na v3.4.10 ou em versão posterior.');
+      }
+    }
+  }
+
+  function editorPost(iframe, payload, timeout, label){
+    timeout = timeout || 5000;
+    const rid = 'ED_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+    return new Promise((resolve, reject) => {
+      let done = false;
+      const timer = setTimeout(() => {
+        if(done) return;
+        done = true;
+        window.removeEventListener('message', onMessage, false);
+        reject(new Error((label || 'O formulário') + ' não respondeu dentro do tempo esperado.'));
+      }, timeout);
+      function onMessage(ev){
+        if(ev.source !== iframe.contentWindow) return;
+        const msg = ev.data;
+        if(!msg || msg.__unified !== true || msg.rid !== rid) return;
+        if(done) return;
+        done = true;
+        clearTimeout(timer);
+        window.removeEventListener('message', onMessage, false);
+        if(msg.ok === false) reject(new Error(msg.error || ((label || 'O formulário') + ' informou uma falha.')));
+        else resolve(msg);
+      }
+      window.addEventListener('message', onMessage, false);
+      try{ iframe.contentWindow.postMessage(Object.assign({__unified:true,rid}, payload || {}), '*'); }
+      catch(error){ clearTimeout(timer); window.removeEventListener('message', onMessage, false); reject(error); }
+    });
+  }
+
+  async function postWithRetry(page, payload, options){
+    const opts = Object.assign({attempts:3, timeout:8000, pause:250, label:DOCS[page.docId].title}, options || {});
+    let lastError;
+    for(let attempt=1; attempt<=opts.attempts; attempt++){
+      try{ return await editorPost(page.iframe, payload, opts.timeout, opts.label); }
+      catch(error){
+        lastError = error;
+        if(attempt < opts.attempts) await delay(opts.pause * attempt);
+      }
+    }
+    throw lastError || new Error(opts.label + ' não respondeu.');
+  }
+
+  function pageTitle(page){
+    const doc = DOCS[page.docId];
+    const total = pages.filter(x => x.docId === page.docId).length;
+    return doc.title + (doc.max > 1 ? (' — Instância ' + page.inst + ' de ' + total) : '');
+  }
+
+  function renderCurrent(){
+    if(!pages.length) return;
+    currentIndex = Math.max(0, Math.min(currentIndex, pages.length - 1));
+    pages.forEach((page, index) => page.wrap.classList.toggle('active', index === currentIndex));
+    const page = pages[currentIndex];
+    $('editorPageLabel').textContent = pageTitle(page);
+    $('editorCounter').textContent = 'Página ' + (currentIndex + 1) + ' de ' + pages.length;
+    prevBtn.disabled = currentIndex <= 0;
+    nextBtn.disabled = currentIndex >= pages.length - 1;
+    const repeated = page.docId === 'carencia' || page.docId === 'carta';
+    const count = pages.filter(x => x.docId === page.docId).length;
+    addBtn.classList.toggle('show', repeated);
+    removeBtn.classList.toggle('show', repeated);
+    addBtn.disabled = !repeated || count >= DOCS[page.docId].max;
+    removeBtn.disabled = !repeated || count <= DOCS[page.docId].min;
+  }
+
+  function makePage(docId, inst, stateEntry){
+    const doc = DOCS[docId];
+    const wrap = document.createElement('div');
+    wrap.className = 'editorFrameWrap framewrap';
+    wrap.dataset.doc = docId;
+    wrap.dataset.inst = String(inst);
+    const iframe = document.createElement('iframe');
+    iframe.src = doc.file + '?rpropEditor=1&docId=' + encodeURIComponent(docId) + '&inst=' + encodeURIComponent(inst) + '&ts=' + Date.now();
+    wrap.appendChild(iframe);
+    stage.appendChild(wrap);
+    try{ window.__rpropEditorWindows.add(iframe.contentWindow); }catch(e){}
+    const page = {docId, inst, wrap, iframe, stateEntry:stateEntry || {inst,controls:[]}, loaded:false, configured:false};
+    pages.push(page);
+    return page;
+  }
+
+  function waitFrameLoad(page){
+    if(page.loaded) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      let finished = false;
+      const done = () => {
+        if(finished) return;
+        finished = true;
+        clearTimeout(timer);
+        page.loaded = true;
+        try{ window.__rpropEditorWindows.add(page.iframe.contentWindow); }catch(e){}
+        resolve();
+      };
+      const timer = setTimeout(() => {
+        if(finished) return;
+        finished = true;
+        reject(new Error('O formulário ' + DOCS[page.docId].title + ' demorou demais para carregar.'));
+      }, 30000);
+      page.iframe.addEventListener('load', done, {once:true});
+      try{
+        const doc = page.iframe.contentDocument;
+        if(doc && doc.readyState === 'complete') done();
+      }catch(e){}
+    });
+  }
+
+  async function waitEditorBridge(page){
+    const deadline = Date.now() + 30000;
+    let lastError;
+    while(Date.now() < deadline){
+      try{
+        const msg = await editorPost(page.iframe, {type:'EDITOR_PING_V344'}, 1600, DOCS[page.docId].title);
+        if(msg && msg.ok !== false) return msg;
+      }catch(error){ lastError = error; }
+      await delay(180);
+    }
+    throw lastError || new Error('A ponte de edição de ' + DOCS[page.docId].title + ' não ficou pronta.');
+  }
+
+  async function configurePage(page, position){
+    const label = pageTitle(page);
+    setLoading(true, 'Preparando formulário ' + position + ' de ' + pages.length + '...', label, false);
+    await waitFrameLoad(page);
+    await waitEditorBridge(page);
+    const pageEditableKeys = editableKeysForPage(page);
+    await postWithRetry(page, {type:'EDITOR_SET_MODE_V342', editableKeys:pageEditableKeys}, {attempts:3,timeout:9000,label:label});
+    await postWithRetry(page, {type:'EDITOR_IMPORT_V342', controls:(page.stateEntry && page.stateEntry.controls) || []}, {attempts:3,timeout:15000,label:label});
+    await postWithRetry(page, {type:'EDITOR_SET_MODE_V342', editableKeys:pageEditableKeys}, {attempts:3,timeout:9000,label:label});
+    await postWithRetry(page, {type:'EDITOR_STATUS_V344'}, {attempts:2,timeout:5000,label:label});
+    page.configured = true;
+  }
+
+  function clearEditor(){
+    pages.forEach(page => { try{ window.__rpropEditorWindows.delete(page.iframe.contentWindow); }catch(e){} });
+    pages = [];
+    currentIndex = 0;
+    Array.from(stage.querySelectorAll('.editorFrameWrap')).forEach(el => el.remove());
+  }
+
+  function closeEditor(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    setLoading(false);
+    clearEditor();
+    loadedPayload = null;
+    originalPdfBytes = null;
+    preparing = false;
+  }
+
+  async function prepareAllPages(){
+    if(preparing) return;
+    preparing = true;
+    loadingActions.classList.remove('show');
+    try{
+      for(let i=0;i<pages.length;i++){
+        if(!pages[i].configured) await configurePage(pages[i], i + 1);
+      }
+      await syncAutomaticBeneficiaryName();
+      currentIndex = Math.max(0, Math.min(currentIndex, pages.length - 1));
+      renderCurrent();
+      setLoading(false);
+    }catch(error){
+      console.error(error);
+      const failed = pages.find(page => !page.configured);
+      if(failed) currentIndex = pages.indexOf(failed);
+      renderCurrent();
+      setLoading(true, 'Não foi possível preparar este formulário', (error && error.message ? error.message : 'Falha inesperada.') + ' Os dados da proposta continuam carregados.', true);
+    }finally{
+      preparing = false;
+    }
+  }
+
+  async function loadPdf(file){
+    setLoading(true, 'Carregando proposta...', 'Lendo os dados internos do PDF.', false);
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    clearEditor();
+    try{
+      sourceFileName = file.name || 'PROPOSTA.pdf';
+      originalPdfBytes = new Uint8Array(await file.arrayBuffer());
+      loadedPayload = await extractPayload(originalPdfBytes);
+      await verifyPayloadV342(loadedPayload);
+
+      for(const docId of ORDER){
+        const entries = Array.isArray(loadedPayload.docs && loadedPayload.docs[docId]) ? loadedPayload.docs[docId] : [];
+        const doc = DOCS[docId];
+        const count = Math.max(doc.min, Math.min(doc.max, entries.length || Number(loadedPayload.counts && loadedPayload.counts[docId]) || doc.min));
+        for(let i=1;i<=count;i++) makePage(docId, i, entries[i-1] || {inst:i,controls:[]});
+      }
+
+      const summary = loadedPayload.summary || {};
+      $('editorHeaderMeta').textContent = [summary.titular, summary.contrato, summary.plano, 'Revisão ' + (loadedPayload.revision || 1)].filter(Boolean).join(' • ') || sourceFileName;
+      currentIndex = 0;
+      renderCurrent();
+      await prepareAllPages();
+    }catch(error){
+      console.error(error);
+      closeEditor();
+      alert(error && error.message ? error.message : 'Não foi possível abrir esta proposta para edição.');
+    }
+  }
+
+  async function syncAutomaticBeneficiaryName(value){
+    try{
+      let titular = value;
+      if(titular == null){
+        const proposta = pages.find(x => x.docId === 'proposta');
+        if(!proposta || !proposta.configured) return;
+        const resp = await postWithRetry(proposta, {type:'GET_FIELD_VALUE_V26', fieldId:'nome_titular'}, {attempts:2,timeout:4000,label:'Nome do titular'});
+        titular = resp && resp.value != null ? String(resp.value) : '';
+      }
+      const comprov = pages.find(x => x.docId === 'comprov');
+      if(comprov && comprov.configured){
+        await postWithRetry(comprov, {type:'EDITOR_APPLY_FIELD_V342', id:'nome_benef_auto', key:'id:nome_benef_auto', value:String(titular || '')}, {attempts:2,timeout:4000,label:'Nome automático do beneficiário'});
+      }
+    }catch(e){ console.warn('Não foi possível sincronizar o nome automático:', e); }
+  }
+
+  async function addInstance(){
+    const current = pages[currentIndex];
+    if(!current || !['carencia','carta'].includes(current.docId)) return;
+    const same = pages.filter(x => x.docId === current.docId);
+    if(same.length >= DOCS[current.docId].max) return;
+    setLoading(true, 'Criando instância...', 'Preparando um novo formulário em branco.', false);
+    try{
+      const inst = same.length + 1;
+      const page = makePage(current.docId, inst, {inst,controls:[]});
+      pages = pages.filter(x => x !== page);
+      const lastIndex = pages.map(x => x.docId).lastIndexOf(current.docId);
+      pages.splice(lastIndex + 1, 0, page);
+      await configurePage(page, pages.indexOf(page) + 1);
+      currentIndex = pages.indexOf(page);
+      renderCurrent();
+      setLoading(false);
+    }catch(error){
+      setLoading(true, 'Não foi possível criar a instância', error.message || 'Falha inesperada.', true);
+    }
+  }
+
+  function removeInstance(){
+    const current = pages[currentIndex];
+    if(!current || !['carencia','carta'].includes(current.docId)) return;
+    const same = pages.filter(x => x.docId === current.docId);
+    if(same.length <= DOCS[current.docId].min) return;
+    try{ window.__rpropEditorWindows.delete(current.iframe.contentWindow); }catch(e){}
+    current.wrap.remove();
+    pages.splice(currentIndex, 1);
+    pages.filter(x => x.docId === current.docId).forEach((page, idx) => {
+      page.inst = idx + 1;
+      page.wrap.dataset.inst = String(idx + 1);
+    });
+    currentIndex = Math.min(currentIndex, pages.length - 1);
+    renderCurrent();
+  }
+
+  function editorSeq(){
+    return pages.filter(page => page.configured).map(page => ({docId:page.docId, inst:String(page.inst), iframe:page.iframe}));
+  }
+
+  function renderEditorStatusWindow(w, title, message, isError){
+    if(!w || w.closed) return false;
+    try{
+      const doc = w.document;
+      doc.title = String(title || 'R-Proposta Fácil');
+      const root = doc.documentElement;
+      const body = doc.body;
+      if(!root || !body) return false;
+
+      root.style.margin = '0';
+      root.style.height = '100%';
+      body.style.margin = '0';
+      body.style.minHeight = '100%';
+      body.style.fontFamily = 'Arial, sans-serif';
+      body.style.background = '#111827';
+      body.style.color = isError ? '#fee2e2' : '#e5e7eb';
+      body.style.display = 'flex';
+      body.style.alignItems = 'center';
+      body.style.justifyContent = 'center';
+      body.style.padding = '24px';
+      body.style.boxSizing = 'border-box';
+      body.replaceChildren();
+
+      const box = doc.createElement('div');
+      box.style.maxWidth = '720px';
+      box.style.padding = '22px 26px';
+      box.style.border = isError ? '1px solid rgba(248,113,113,.45)' : '1px solid rgba(255,255,255,.16)';
+      box.style.borderRadius = '16px';
+      box.style.background = isError ? 'rgba(127,29,29,.22)' : 'rgba(255,255,255,.05)';
+      box.style.textAlign = 'center';
+
+      const heading = doc.createElement('div');
+      heading.textContent = String(title || 'R-Proposta Fácil');
+      heading.style.fontWeight = '900';
+      heading.style.fontSize = '18px';
+      heading.style.marginBottom = '8px';
+
+      const detail = doc.createElement('div');
+      detail.textContent = String(message || '');
+      detail.style.fontSize = '13px';
+      detail.style.lineHeight = '1.4';
+      detail.style.color = isError ? '#fecaca' : '#9ca3af';
+
+      box.appendChild(heading);
+      box.appendChild(detail);
+      body.appendChild(box);
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function openEditorPreparingWindow(){
+    let w = null;
+    try{ w = window.open('about:blank', '_blank'); }catch(e){ w = null; }
+    if(w){
+      renderEditorStatusWindow(
+        w,
+        'Preparando proposta...',
+        'Aguarde enquanto o PDF atualizado é gerado.',
+        false
+      );
+    }
+    return w;
+  }
+
+  function showEditorPdfError(w, message){
+    renderEditorStatusWindow(
+      w,
+      'Não foi possível gerar o PDF',
+      message || 'Não foi possível gerar o PDF.',
+      true
+    );
+  }
+
+  async function generateEditedPdf(action){
+    const shouldView = action === 'view';
+    let pdfWindow = null;
+    if(shouldView) pdfWindow = openEditorPreparingWindow();
+
+    if(pages.some(page => !page.configured)){
+      try{ if(pdfWindow && !pdfWindow.closed) pdfWindow.close(); }catch(e){}
+      setLoading(true, 'Formulário ainda não preparado', 'Use TENTAR NOVAMENTE antes de gerar o PDF atualizado.', true);
+      return;
+    }
+    const engine = window.__rpropPdfEngineV342;
+    if(!engine){
+      try{ if(pdfWindow && !pdfWindow.closed) pdfWindow.close(); }catch(e){}
+      alert('O motor de PDF ainda não terminou de carregar. Aguarde alguns segundos.');
+      return;
+    }
+
+    const activeBtn = shouldView ? viewBtn : generateBtn;
+    const old = activeBtn.textContent;
+    viewBtn.disabled = true;
+    generateBtn.disabled = true;
+    activeBtn.textContent = shouldView ? 'ABRINDO...' : 'GERANDO PDF...';
+    setLoading(true, shouldView ? 'Preparando visualização...' : 'Gerando PDF atualizado...', 'Os campos editados estão sendo aplicados e os anexos originais serão preservados.', false);
+    try{
+      const seq = editorSeq();
+      // V3.4.10: garante que os valores atuais do modal alimentem as prévias internas
+      // antes de validar, visualizar ou baixar o PDF atualizado.
+      await engine.synchronizeEditorFramesForPdfV348(seq);
+      const problems = await engine.validateRequired(seq);
+      if(problems && problems.length){
+        try{ if(pdfWindow && !pdfWindow.closed) pdfWindow.close(); }catch(e){}
+        engine.showValidationProblems(problems);
+        return;
+      }
+      const name = await engine.getPdfFileNameSafe(seq);
+      const bytes = await engine.generatePdfOriginal(seq, name, {
+        originalPdfBytes,
+        originalCorePageCount:Number(loadedPayload && loadedPayload.corePageCount || 0),
+        basePayload:loadedPayload,
+        skipCurrentAttachments:true
+      });
+      const blob = new Blob([bytes], {type:'application/pdf'});
+      if(shouldView){
+        const result = engine.openPdfBlobNamed(blob, name, pdfWindow);
+        if(!result || !result.opened){
+          engine.downloadPdfBlob(blob, name);
+        }else{
+          setTimeout(() => { try{ URL.revokeObjectURL(result.url); }catch(e){} }, 120000);
+        }
+      }else{
+        engine.downloadPdfBlob(blob, name);
+      }
+    }catch(error){
+      console.error(error);
+      const message = error && error.message ? error.message : 'Não foi possível gerar o PDF atualizado.';
+      if(shouldView) showEditorPdfError(pdfWindow, message);
+      alert(message);
+    }finally{
+      setLoading(false);
+      viewBtn.disabled = false;
+      generateBtn.disabled = false;
+      activeBtn.textContent = old;
+    }
+  }
+
+  openBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files && fileInput.files[0];
+    fileInput.value = '';
+    if(file) await loadPdf(file);
+  });
+  $('editorCloseBtn').addEventListener('click', closeEditor);
+  retryBtn.addEventListener('click', prepareAllPages);
+  cancelLoadBtn.addEventListener('click', closeEditor);
+  prevBtn.addEventListener('click', () => { if(currentIndex > 0){ currentIndex--; renderCurrent(); } });
+  nextBtn.addEventListener('click', () => { if(currentIndex < pages.length - 1){ currentIndex++; renderCurrent(); } });
+  addBtn.addEventListener('click', addInstance);
+  removeBtn.addEventListener('click', removeInstance);
+  viewBtn.addEventListener('click', () => generateEditedPdf('view'));
+  generateBtn.addEventListener('click', () => generateEditedPdf('download'));
+
+  window.addEventListener('message', ev => {
+    const msg = ev.data;
+    if(!msg || (msg.__rpropEditorV344 !== true && msg.__rpropEditorV342 !== true)) return;
+    if(msg.type === 'EDITOR_FIELD_CHANGED_V342' && msg.docId === 'proposta' && msg.id === 'nome_titular'){
+      syncAutomaticBeneficiaryName(msg.value || '');
+    }
+  }, false);
 })();
 </script>
 

@@ -1470,5 +1470,543 @@ document.addEventListener("DOMContentLoaded", function(){
 })();
 </script>
 
+
+<script>
+/* ===== v3.4.10: ponte estável de dados para o editor de PDF ===== */
+(() => {
+  if (window.__rpropEditorBridgeV344) return;
+  window.__rpropEditorBridgeV344 = true;
+
+  const params = new URLSearchParams(location.search || '');
+  const EDITOR_MODE = params.get('rpropEditor') === '1';
+  const DOC_ID = params.get('docId') || '';
+  const INST = params.get('inst') || '1';
+  let editableKeys = new Set();
+  let permissionObserver = null;
+  let permissionRefreshQueued = false;
+
+  const TECHNICAL_IDS = new Set([
+    'calib_field','calib_x','calib_y','calib_w','calib_json','calibJson',
+    'cal_field','cx','cy','cw','cfs','cjson','csnap','cstep'
+  ]);
+
+  function allControls(){
+    return Array.from(document.querySelectorAll('input, select, textarea'))
+      .filter(el => String(el.type || '').toLowerCase() !== 'file')
+      .filter(el => !TECHNICAL_IDS.has(el.id || ''))
+      .filter(el => !String(el.id || '').endsWith('_display_v32'));
+  }
+
+  function controlKey(el){
+    if(!el) return '';
+    if(el.id) return 'id:' + el.id;
+    const group = el.getAttribute && el.getAttribute('data-group');
+    const person = el.getAttribute && el.getAttribute('data-person');
+    if(group || person) return 'data:' + (group || '') + ':' + (person || '');
+    if(el.name) return 'name:' + el.name + '|value:' + String(el.value || '');
+    const list = allControls();
+    return 'index:' + Math.max(0, list.indexOf(el));
+  }
+
+  function findControl(key, fallbackId){
+    if(fallbackId){
+      const byId = document.getElementById(fallbackId);
+      if(byId) return byId;
+    }
+    return allControls().find(el => controlKey(el) === key) || null;
+  }
+
+  function captureControls(){
+    return allControls().map(el => ({
+      key: controlKey(el),
+      id: el.id || '',
+      name: el.name || '',
+      type: String(el.type || el.tagName || '').toLowerCase(),
+      value: String(el.value == null ? '' : el.value),
+      checked: !!el.checked
+    }));
+  }
+
+  function ensureSelectValue(el, value){
+    if(!el || el.tagName !== 'SELECT') return;
+    const text = value == null ? '' : String(value);
+    if(!text) return;
+    const found = Array.from(el.options || []).some(opt => String(opt.value) === text);
+    if(!found){
+      const opt = document.createElement('option');
+      opt.value = text;
+      opt.textContent = text;
+      el.appendChild(opt);
+    }
+  }
+
+  function setOne(el, item){
+    if(!el || !item) return;
+    const type = String(el.type || '').toLowerCase();
+    if(type === 'checkbox' || type === 'radio'){
+      el.checked = !!item.checked;
+    }else{
+      const value = item.value == null ? '' : String(item.value);
+      ensureSelectValue(el, value);
+      el.value = value;
+    }
+  }
+
+  function emitEvents(el){
+    if(!el) return;
+    try{ el.dispatchEvent(new Event('input', {bubbles:true})); }catch(e){}
+    try{ el.dispatchEvent(new Event('change', {bubbles:true})); }catch(e){}
+  }
+
+  function delay(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+  async function applyControls(items){
+    const data = Array.isArray(items) ? items : [];
+    data.forEach(item => setOne(findControl(item.key, item.id), item));
+
+    const priorityIds = new Set([
+      'contrato_nome','nome_plano','taxa_isento','pct_taxa','valor_plano',
+      'prestadora','plano_contrato','contrato','ativ_prog','ativ_imed','desist_mes'
+    ]);
+    data.forEach(item => {
+      const el = findControl(item.key, item.id);
+      if(el && (priorityIds.has(el.id) || el.name === 'mov' || el.name === 'ativ_tipo')) emitEvents(el);
+    });
+    await delay(180);
+
+    data.forEach(item => setOne(findControl(item.key, item.id), item));
+    data.forEach(item => emitEvents(findControl(item.key, item.id)));
+    await delay(180);
+    data.forEach(item => setOne(findControl(item.key, item.id), item));
+    refreshEditorPermissions();
+  }
+
+  function isEditable(el){
+    return editableKeys.has(controlKey(el));
+  }
+
+  function removeLegacyMirrorLock(el){
+    if(!el) return;
+    el.classList.remove('mirror-locked-v31');
+    el.title = '';
+    const card = el.closest && el.closest('.optcard');
+    if(card) card.classList.remove('mirror-locked-v31');
+
+    if(el.tagName === 'SELECT'){
+      el.classList.remove('mirror-select-internal-v32');
+      el.removeAttribute('aria-hidden');
+      if(el.id){
+        const display = document.getElementById(el.id + '_display_v32');
+        if(display){
+          display.style.display = 'none';
+          display.setAttribute('aria-hidden', 'true');
+          display.tabIndex = -1;
+        }
+      }
+    }
+  }
+
+  function refreshConditionalFields(){
+    if(!EDITOR_MODE) return;
+    const activationDate = document.getElementById('ativ_data');
+    if(activationDate && editableKeys.has('id:ativ_data')){
+      const programmed = document.getElementById('ativ_prog');
+      const enabled = !!(programmed && programmed.checked);
+      activationDate.disabled = !enabled;
+      activationDate.readOnly = !enabled;
+      activationDate.classList.toggle('rprop-editor-conditional-locked', !enabled);
+      activationDate.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+      activationDate.tabIndex = enabled ? 0 : -1;
+    }
+  }
+
+  const permissionObserverOptions = {
+    subtree:true,
+    childList:true,
+    attributes:true,
+    attributeFilter:['class','disabled','readonly','aria-hidden','aria-disabled','style']
+  };
+
+  function startPermissionObserver(){
+    if(permissionObserver){
+      permissionObserver.disconnect();
+      permissionObserver.observe(document.documentElement, permissionObserverOptions);
+    }
+  }
+
+  function refreshEditorPermissions(){
+    if(!EDITOR_MODE || !document.body.classList.contains('rprop-editor-mode')) return;
+    if(permissionObserver) permissionObserver.disconnect();
+    allControls().forEach(el => {
+      const allowed = isEditable(el);
+      el.classList.toggle('rprop-editor-editable', allowed);
+      el.classList.toggle('rprop-editor-locked', !allowed);
+      el.setAttribute('data-rprop-editor-locked', allowed ? '0' : '1');
+      if(allowed){
+        removeLegacyMirrorLock(el);
+        try{ el.disabled = false; }catch(e){}
+        try{ el.readOnly = false; }catch(e){}
+        el.removeAttribute('aria-disabled');
+        if(el.tabIndex < 0) el.tabIndex = 0;
+      }else{
+        el.setAttribute('aria-disabled','true');
+        el.tabIndex = -1;
+      }
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.add('rprop-editor-navigation');
+      btn.removeAttribute('aria-disabled');
+      btn.tabIndex = 0;
+    });
+
+    const calc = document.getElementById('btn_calc_taxa');
+    if(calc){
+      const allowed = editableKeys.has('id:btn_calc_taxa');
+      calc.setAttribute('data-rprop-editor-locked', allowed ? '0' : '1');
+      calc.classList.toggle('rprop-editor-editable', allowed);
+      calc.classList.toggle('rprop-editor-locked', !allowed);
+      if(allowed){
+        calc.disabled = false;
+        calc.removeAttribute('aria-disabled');
+      }
+    }
+    refreshConditionalFields();
+    startPermissionObserver();
+  }
+
+  function schedulePermissionRefresh(){
+    if(permissionRefreshQueued) return;
+    permissionRefreshQueued = true;
+    setTimeout(() => {
+      permissionRefreshQueued = false;
+      refreshEditorPermissions();
+    }, 0);
+  }
+
+  function applyEditorMode(keys){
+    if(!EDITOR_MODE) return;
+    editableKeys = new Set(Array.isArray(keys) ? keys : []);
+    document.body.classList.add('rprop-editor-mode');
+    refreshEditorPermissions();
+
+    if(!permissionObserver){
+      permissionObserver = new MutationObserver(schedulePermissionRefresh);
+    }
+    startPermissionObserver();
+  }
+
+  function respond(ev, data){
+    try{
+      ev.source && ev.source.postMessage(Object.assign({
+        __unified:true,
+        rid: ev.data && ev.data.rid,
+        __rpropEditorV344:true
+      }, data || {}), '*');
+    }catch(e){}
+  }
+
+  window.addEventListener('message', async ev => {
+    const msg = ev.data;
+    if(!msg || typeof msg !== 'object') return;
+
+    if(msg.type === 'EDITOR_PING_V344'){
+      respond(ev, {type:'EDITOR_PING_V344_RESULT', ok:true, docId:DOC_ID, inst:INST, readyState:document.readyState});
+      return;
+    }
+    if(msg.type === 'EDITOR_EXPORT_V342'){
+      respond(ev, {type:'EDITOR_EXPORT_V342_RESULT', ok:true, docId:DOC_ID, inst:INST, controls:captureControls()});
+      return;
+    }
+    if(msg.type === 'EDITOR_IMPORT_V342'){
+      try{
+        await applyControls(msg.controls || []);
+        respond(ev, {type:'EDITOR_IMPORT_V342_RESULT', ok:true});
+      }catch(error){
+        respond(ev, {type:'EDITOR_IMPORT_V342_RESULT', ok:false, error:String(error && error.message || error)});
+      }
+      return;
+    }
+    if(msg.type === 'EDITOR_SET_MODE_V342'){
+      applyEditorMode(msg.editableKeys || []);
+      await delay(30);
+      refreshEditorPermissions();
+      respond(ev, {type:'EDITOR_SET_MODE_V342_RESULT', ok:true, editableCount:editableKeys.size});
+      return;
+    }
+    if(msg.type === 'EDITOR_APPLY_FIELD_V342'){
+      const el = findControl(msg.key || '', msg.id || '');
+      if(el){
+        setOne(el, {value:msg.value, checked:msg.checked});
+        emitEvents(el);
+        refreshEditorPermissions();
+      }
+      respond(ev, {type:'EDITOR_APPLY_FIELD_V342_RESULT', ok:!!el});
+      return;
+    }
+    if(msg.type === 'EDITOR_STATUS_V344'){
+      respond(ev, {
+        type:'EDITOR_STATUS_V344_RESULT',
+        ok:true,
+        docId:DOC_ID,
+        inst:INST,
+        editorMode:EDITOR_MODE,
+        editableCount:editableKeys.size
+      });
+    }
+  }, false);
+
+  if(EDITOR_MODE){
+    const style = document.createElement('style');
+    style.id = 'rpropEditorModeStyleV344';
+    style.textContent = `
+      body.rprop-editor-mode .rprop-editor-locked{pointer-events:none!important;filter:grayscale(.38);opacity:.68!important;box-shadow:none!important;}
+      body.rprop-editor-mode .rprop-editor-editable{pointer-events:auto!important;opacity:1!important;filter:none!important;cursor:text!important;}
+      body.rprop-editor-mode select.rprop-editor-editable{cursor:pointer!important;display:block!important;}
+      body.rprop-editor-mode input[type="radio"].rprop-editor-editable,
+      body.rprop-editor-mode input[type="checkbox"].rprop-editor-editable{cursor:pointer!important;}
+      body.rprop-editor-mode .rprop-editor-conditional-locked{pointer-events:none!important;filter:grayscale(.4)!important;opacity:.64!important;box-shadow:none!important;}
+      body.rprop-editor-mode .rprop-editor-navigation{pointer-events:auto!important;opacity:1!important;filter:none!important;}
+      body.rprop-editor-mode .mirror-display-v32{display:none!important;}
+      body.rprop-editor-mode select.mirror-select-internal-v32{display:block!important;}
+      body.rprop-editor-mode .rprop-editor-editable.mirror-locked-v31{background:#fff!important;color:inherit!important;cursor:auto!important;}
+    `;
+    document.head.appendChild(style);
+
+    document.addEventListener('click', ev => {
+      const locked = ev.target && ev.target.closest ? ev.target.closest('[data-rprop-editor-locked="1"]') : null;
+      if(locked){ ev.preventDefault(); ev.stopImmediatePropagation(); }
+    }, true);
+
+    const notify = ev => {
+      const el = ev.target;
+      if(!el || !el.matches || !el.matches('input,select,textarea')) return;
+      schedulePermissionRefresh();
+      try{
+        window.parent && window.parent.postMessage({
+          __rpropEditorV344:true,
+          type:'EDITOR_FIELD_CHANGED_V342',
+          docId:DOC_ID,
+          inst:INST,
+          key:controlKey(el),
+          id:el.id || '',
+          value:String(el.value == null ? '' : el.value),
+          checked:!!el.checked
+        }, '*');
+      }catch(e){}
+    };
+    document.addEventListener('input', notify, false);
+    document.addEventListener('change', notify, false);
+
+    const announceReady = () => {
+      try{ window.parent && window.parent.postMessage({__rpropEditorV344:true,type:'EDITOR_FRAME_READY_V344',docId:DOC_ID,inst:INST}, '*'); }catch(e){}
+    };
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(announceReady, 30), {once:true});
+    else setTimeout(announceReady, 30);
+  }
+})();
+</script>
+
+
+
+<style id="rpropEditorNeonV345">
+/* ===== v3.4.10: neons exclusivos do modal de edição ===== */
+body.rprop-editor-mode .rprop-editor-neon-red{
+  border-color:#ef4444!important;
+  box-shadow:0 0 0 3px rgba(239,68,68,.25),0 0 13px rgba(239,68,68,.62)!important;
+}
+body.rprop-editor-mode .rprop-editor-neon-blue{
+  border-color:#2563eb!important;
+  box-shadow:0 0 0 3px rgba(37,99,235,.25),0 0 13px rgba(37,99,235,.58)!important;
+}
+body.rprop-editor-mode .rprop-editor-neon-green{
+  border-color:#22c55e!important;
+  box-shadow:0 0 0 3px rgba(34,197,94,.23),0 0 13px rgba(34,197,94,.58)!important;
+}
+body.rprop-editor-mode label.rprop-editor-neon-red,
+body.rprop-editor-mode label.rprop-editor-neon-blue,
+body.rprop-editor-mode label.rprop-editor-neon-green,
+body.rprop-editor-mode button.rprop-editor-neon-blue{
+  border-style:solid!important;
+  border-width:1px!important;
+  border-radius:10px!important;
+}
+body.rprop-editor-mode button.rprop-editor-neon-blue{
+  outline:none!important;
+}
+body.rprop-editor-mode .rprop-editor-locked,
+body.rprop-editor-mode .rprop-editor-conditional-locked{
+  box-shadow:none!important;
+}
+</style>
+<script>
+/* ===== v3.4.10: estados visuais dos campos liberados no editor ===== */
+(() => {
+  if(window.__rpropEditorNeonV345) return;
+  window.__rpropEditorNeonV345 = true;
+
+  const STATE_CLASSES = ['rprop-editor-neon-red','rprop-editor-neon-blue','rprop-editor-neon-green'];
+  const DOC_ID = new URLSearchParams(location.search || '').get('docId') || '';
+  const OPTIONAL_IDS = new Set([
+    'complemento','taxa_isento','desist_mes','port_data'
+  ]);
+  const OPTIONAL_PREFIXES = ['dep','cpf_d','data_d','cidade_d','uf_d','vinculo_d','estado_civil_d','email_d','telefone_d','cns_d'];
+
+  function editableControls(){
+    return Array.from(document.querySelectorAll('.rprop-editor-editable'));
+  }
+
+  function stateTarget(el){
+    if(!el) return null;
+    const type = String(el.type || '').toLowerCase();
+    if(type === 'radio' || type === 'checkbox'){
+      return el.closest('label.optcard, label.pill, label.isento-flag, label') || el;
+    }
+    return el;
+  }
+
+  function clearState(el){
+    const target = stateTarget(el);
+    if(target) target.classList.remove(...STATE_CLASSES);
+    if(el && target !== el) el.classList.remove(...STATE_CLASSES);
+  }
+
+  function setState(el, state){
+    const target = stateTarget(el);
+    if(!target) return;
+    target.classList.remove(...STATE_CLASSES);
+    target.classList.add('rprop-editor-neon-' + state);
+    if(el && target !== el) el.classList.remove(...STATE_CLASSES);
+  }
+
+  function digits(value){ return String(value || '').replace(/\D/g,''); }
+  function hasValue(el){
+    if(!el) return false;
+    const type = String(el.type || '').toLowerCase();
+    if(type === 'radio' || type === 'checkbox') return !!el.checked;
+    return String(el.value == null ? '' : el.value).trim() !== '';
+  }
+
+  function valueIsValid(el){
+    if(!hasValue(el)) return false;
+    const id = String(el.id || '').toLowerCase();
+    const value = String(el.value || '').trim();
+    if(id.includes('email')) return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(value);
+    if(id === 'ddd') return digits(value).length === 2;
+    if(id.includes('cpf')) return digits(value).length === 11;
+    if(id.includes('cns')) return digits(value).length === 15;
+    if(id === 'cep') return digits(value).length === 8;
+    if(DOC_ID === 'consent' && id === 'telefone') return digits(value).length === 9;
+    if(id === 'fone' || id.includes('telefone')) return digits(value).length >= 10;
+    if(id.includes('data') || id === 'car_parto'){
+      if(/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return true;
+      // Campos de prazo do Termo de Carência podem conter textos como ZERO/180 DIAS.
+      if(DOC_ID === 'carencia') return value.length > 0;
+      return false;
+    }
+    try{
+      if(typeof el.checkValidity === 'function' && !el.checkValidity()) return false;
+    }catch(e){}
+    return true;
+  }
+
+  function dependentFieldIsOptional(el){
+    if(DOC_ID !== 'proposta' || !el || !el.id) return false;
+    return OPTIONAL_PREFIXES.some(prefix => el.id === prefix + '1' || el.id === prefix + '2' || el.id === prefix + '3' || el.id === prefix + '4');
+  }
+
+  function isOptional(el){
+    if(!el) return true;
+    if(OPTIONAL_IDS.has(el.id || '')) return true;
+    if(dependentFieldIsOptional(el)) return true;
+    const type = String(el.type || '').toLowerCase();
+    if(type === 'checkbox') return true;
+    return false;
+  }
+
+  function updateRadioGroup(name){
+    const items = Array.from(document.querySelectorAll('input.rprop-editor-editable[type="radio"][name="' + name + '"]'));
+    if(!items.length) return;
+    const checked = items.find(el => el.checked);
+    items.forEach(el => setState(el, checked ? (el.checked ? 'green' : 'blue') : 'red'));
+  }
+
+  function updateProposalSelections(){
+    if(DOC_ID !== 'proposta') return;
+    const psc = Array.from(document.querySelectorAll('input.rprop-editor-editable.psel'));
+    if(psc.length){
+      const movement = document.querySelector('input[name="mov"]:checked');
+      const groupRequired = !!movement && movement.value !== 'imm_rn';
+      const any = psc.some(el => el.checked);
+      psc.forEach(el => setState(el, el.checked ? 'green' : (groupRequired && !any ? 'red' : 'blue')));
+    }
+    const isento = document.getElementById('taxa_isento');
+    const pct = document.getElementById('pct_taxa');
+    if(isento && isento.classList.contains('rprop-editor-editable')) setState(isento, isento.checked ? 'green' : 'blue');
+    if(pct && pct.classList.contains('rprop-editor-editable')){
+      if(isento && isento.checked && !hasValue(pct)) setState(pct, 'blue');
+      else setState(pct, valueIsValid(pct) ? 'green' : 'red');
+    }
+    const calc = document.getElementById('btn_calc_taxa');
+    if(calc && calc.classList.contains('rprop-editor-editable')){
+      calc.classList.remove(...STATE_CLASSES);
+      calc.classList.add('rprop-editor-neon-blue');
+    }
+  }
+
+  function updateActivationDate(){
+    if(DOC_ID !== 'comprov') return;
+    const date = document.getElementById('ativ_data');
+    if(!date || !date.classList.contains('rprop-editor-editable')) return;
+    const programmed = document.getElementById('ativ_prog');
+    if(!programmed || !programmed.checked || date.disabled || date.readOnly){
+      clearState(date);
+      return;
+    }
+    setState(date, valueIsValid(date) ? 'green' : 'red');
+  }
+
+  function updateAll(){
+    if(!document.body || !document.body.classList.contains('rprop-editor-mode')) return;
+    const controls = editableControls();
+    controls.forEach(el => {
+      if(el.id === 'btn_calc_taxa') return;
+      const type = String(el.type || '').toLowerCase();
+      if(type === 'radio') return;
+      if(el.id === 'ativ_data') return;
+      if(el.disabled || el.readOnly || el.classList.contains('rprop-editor-conditional-locked')){
+        clearState(el);
+        return;
+      }
+      if(type === 'checkbox'){
+        setState(el, el.checked ? 'green' : 'blue');
+        return;
+      }
+      if(hasValue(el)) setState(el, valueIsValid(el) ? 'green' : 'red');
+      else setState(el, isOptional(el) ? 'blue' : 'red');
+    });
+
+    updateRadioGroup('mov');
+    updateRadioGroup('ativ_tipo');
+    updateProposalSelections();
+    updateActivationDate();
+  }
+
+  ['input','change','focusin','focusout','click'].forEach(type => {
+    document.addEventListener(type, () => setTimeout(updateAll, 0), true);
+  });
+
+  const observer = new MutationObserver(() => setTimeout(updateAll, 0));
+  const start = () => {
+    if(!document.body) return;
+    observer.observe(document.body, {subtree:true, childList:true, attributes:true, attributeFilter:['disabled','readonly','style']});
+    updateAll();
+  };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true});
+  else start();
+  setInterval(updateAll, 450);
+})();
+</script>
+
 </body>
 </html>
