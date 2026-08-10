@@ -10,10 +10,14 @@
   body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(180deg,#0b1220 0%,#0b1220 60%,#0a1020 100%);color:var(--ink);}
   .app{min-height:100vh;display:flex;}
   .sidebar{width:320px;max-width:320px;background:rgba(17,24,39,.95);border-right:1px solid var(--border);padding:14px;position:sticky;top:0;align-self:flex-start;height:100vh;overflow:auto;}
-  .brand{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.04);position:relative;overflow:hidden;}
+  .brandHead{display:flex;align-items:stretch;gap:8px;}
+  .brand{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.04);position:relative;overflow:hidden;flex:1;min-width:0;}
 
-  .brand .title{font-weight:900;letter-spacing:.3px;}
+  .brand .title{font-weight:900;letter-spacing:.3px;white-space:nowrap;}
   .brand .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .admIconBtn{flex:0 0 46px;width:46px;min-height:44px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:#dbeafe;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .12s ease,border-color .12s ease,transform .06s ease;}
+  .admIconBtn:hover{background:rgba(255,255,255,.07);border-color:rgba(125,211,252,.32);transform:translateY(-1px);}
+  .admIconBtn:focus-visible{outline:2px solid rgba(125,211,252,.7);outline-offset:2px;}
   
   .brand::before{display:none !important;}
   .brand > *{position:relative;z-index:1;}
@@ -134,9 +138,11 @@
     transform:translate3d(-105%,0,0);transition:transform .22s ease;overflow-y:auto;overscroll-behavior:contain;
   }
   body.mobile-menu-open .sidebar{transform:translate3d(0,0,0);}
-  .brand{padding:12px;margin-bottom:10px;}
+  .brandHead{margin-bottom:10px;}
+  .brandHead .brand{padding:12px;margin-bottom:0;}
   .brand .title{font-size:16px;}
   .brand .sub{font-size:11px;}
+  .brandHead .admIconBtn{flex-basis:48px;width:48px;min-height:48px;}
   .menu{gap:8px;margin-top:8px;}
   .item{padding:12px;min-height:64px;display:flex;flex-direction:column;justify-content:center;touch-action:manipulation;}
   .item:hover{transform:none;}
@@ -257,12 +263,11 @@
 <div id="mobileBackdrop" class="mobileBackdrop" aria-hidden="true"></div>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand">
-      <div>
+    <div class="brandHead">
+      <div class="brand">
         <div class="title">R-Proposta Fácil</div>
-        <div class="sub">Desktop  • MOBILE</div>
       </div>
-      <div class="pill" title="Persistência local">localStorage</div>
+      <button id="admEntryBtn" class="admIconBtn" type="button" title="Modo ADM" aria-label="Modo ADM">🛡️</button>
     </div>
 
     <div class="menu" id="menu"></div>
@@ -274,7 +279,7 @@
     <div class="attachBox">
 <div class="attachActions">
 <button id="attachBtn" class="attachBtn" type="button">ANEXAR ARQUIVOS</button>
-<button id="prepAttachBtn" class="prepBtn" type="button" title="Atualizar anexos (pré-renderizar)" aria-label="Atualizar anexos">⟳</button>
+
 </div>
       <input id="attachInput" type="file" accept="application/pdf,image/*" multiple style="display:none"/>
       <div id="attachList" class="attachList"></div>
@@ -628,6 +633,10 @@
   }, false);
 
   
+
+  // v5.1: API interna mínima para status, rascunho e navegação de pendências.
+  window.__rpropMainV51 = {DOCS,state,frames,stage,activateDoc,ensureFrames,pruneFrames,renderInstBar,setActiveWrap,saveState};
+
   // ANEXOS (PDF / IMAGEM) — fluxo atual usado pelo gerador PDF final limpo.
   // Mantém somente seleção/listagem em memória. O anexamento real é feito no motor PDFLib ativo.
   const attachBtn = document.getElementById('attachBtn');
@@ -848,20 +857,23 @@
     const overlay = document.getElementById('modalOverlay');
     const list = document.getElementById('modalList');
     const close = document.getElementById('modalCloseBtn');
-    if(!overlay || !list){
-      alert('Faltam campos obrigatórios.');
-      return;
-    }
-    list.innerHTML = (groups || []).map(g => {
-      const items = (g.items || []).map(x => '<li>'+escapeHtml(x)+'</li>').join('');
-      return '<div class="grp"><div class="t">'+escapeHtml(g.title || 'Documento')+'</div><ul>'+items+'</ul></div>';
-    }).join('');
-    overlay.style.display = 'flex';
-    if(close && !close.__rpropBound){
-      close.__rpropBound = true;
-      close.addEventListener('click', ()=>{ overlay.style.display = 'none'; });
-    }
-    overlay.addEventListener('click', (ev)=>{ if(ev.target === overlay) overlay.style.display = 'none'; }, {once:true});
+    if(!overlay || !list){ alert('Faltam campos obrigatórios.'); return; }
+    list.innerHTML = '';
+    (groups || []).forEach(g => {
+      const box=document.createElement('div'); box.className='grp';
+      const t=document.createElement('div'); t.className='t'; t.textContent=g.title || 'Documento'; box.appendChild(t);
+      const ul=document.createElement('ul');
+      (g.items || []).forEach(item => {
+        const li=document.createElement('li');
+        const b=document.createElement('button'); b.type='button'; b.className='v51-pending-link'; b.textContent=String(item);
+        b.addEventListener('click',()=>{ try{ window.__rpropV51NavigateProblem && window.__rpropV51NavigateProblem(g,String(item)); }catch(e){} });
+        li.appendChild(b); ul.appendChild(li);
+      });
+      box.appendChild(ul); list.appendChild(box);
+    });
+    overlay.style.display='flex';
+    if(close && !close.__rpropBound){ close.__rpropBound=true; close.addEventListener('click',()=>{overlay.style.display='none';}); }
+    overlay.onclick=(ev)=>{ if(ev.target===overlay) overlay.style.display='none'; };
   }
 
   async function validateRequired(seq){
@@ -886,7 +898,7 @@
           items = ['Não foi possível validar este documento. Recarregue a página e tente novamente.'];
         }
       }
-      if(items && items.length) groups.push({title, items});
+      if(items && items.length) groups.push({title, items, docId:it.docId, inst:String(it.inst || '1')});
     }
     return groups;
   }
@@ -1035,7 +1047,7 @@
     const payload = {
       magic:'RPROPOSTA_EDITAVEL',
       schema:'rproposta.edit.v1',
-      appVersion:'3.4.10',
+      appVersion:'4.1',
       generatedAt:new Date().toISOString(),
       proposalId:base.proposalId || (crypto.randomUUID ? crypto.randomUUID() : ('RPROP-' + Date.now() + '-' + Math.random().toString(16).slice(2))),
       revision,
@@ -1968,7 +1980,7 @@
     if(!options.skipCurrentAttachments) await appendAttachments(outDoc);
 
     outDoc.setTitle((pdfFileName || getPdfFileName()).replace(/\.pdf$/i,''));
-    outDoc.setProducer('R-Proposta Fácil v3.1 - PDF final editável');
+    outDoc.setProducer('R-Proposta Fácil v4.1 - PDF final editável');
 
     const payload = await buildEditablePayloadV342(seq, corePageCount, outDoc.getPageCount(), pdfFileName, options);
     const jsonText = JSON.stringify(payload);
@@ -2017,11 +2029,14 @@
       if(btn){ btn.disabled = true; btn.textContent = shouldView ? 'ABRINDO PROPOSTA...' : 'BAIXANDO PROPOSTA...'; }
 
       const seq = collectWrapsInOrder();
-      const validationProblems = await validateRequired(seq);
-      if(validationProblems && validationProblems.length){
-        try{ if(pdfWindow && !pdfWindow.closed) pdfWindow.close(); }catch(_e){}
-        showValidationProblems(validationProblems);
-        return;
+      const admBypass = !!(window.__rpropV52Adm && window.__rpropV52Adm.isActive && window.__rpropV52Adm.isActive());
+      if(!admBypass){
+        const validationProblems = await validateRequired(seq);
+        if(validationProblems && validationProblems.length){
+          try{ if(pdfWindow && !pdfWindow.closed) pdfWindow.close(); }catch(_e){}
+          showValidationProblems(validationProblems);
+          return;
+        }
       }
       if(!seq.length){
         try{ if(pdfWindow && !pdfWindow.closed) pdfWindow.close(); }catch(_e){}
@@ -2040,6 +2055,7 @@
       }else{
         // BAIXAR PROPOSTA: mantém o fluxo da v1_teste, baixando direto com o nome do titular.
         downloadPdfBlob(blob, pdfFileName);
+        try{ if(window.__rpropV51ClearDraft) window.__rpropV51ClearDraft(); }catch(_e){}
       }
     }catch(err){
       try{ console.error(err); }catch(_){}
@@ -2600,6 +2616,16 @@
     return pages.filter(page => page.configured).map(page => ({docId:page.docId, inst:String(page.inst), iframe:page.iframe}));
   }
 
+  window.__rpropEditorV51Api = {
+    getSeq:editorSeq,
+    getPages:()=>pages.slice(),
+    isOpen:()=>overlay.classList.contains('open'),
+    editableKeysForDoc:(docId)=>editableKeysForPage({docId:docId,stateEntry:{controls:[]}}),
+    goTo:(docId,inst)=>{ const i=pages.findIndex(p=>p.docId===docId && String(p.inst)===String(inst||'1')); if(i>=0){currentIndex=i;renderCurrent();return true;} return false; },
+    getOriginalPdfBytes:()=>originalPdfBytes,
+    getLoadedPayload:()=>loadedPayload
+  };
+
   function renderEditorStatusWindow(w, title, message, isError){
     if(!w || w.closed) return false;
     try{
@@ -2701,13 +2727,16 @@
     try{
       const seq = editorSeq();
       // V3.4.10: garante que os valores atuais do modal alimentem as prévias internas
-      // antes de validar, visualizar ou baixar o PDF atualizado.
+      // antes de visualizar ou baixar o PDF atualizado. No ADM, a geração não é bloqueada por validação.
       await engine.synchronizeEditorFramesForPdfV348(seq);
-      const problems = await engine.validateRequired(seq);
-      if(problems && problems.length){
-        try{ if(pdfWindow && !pdfWindow.closed) pdfWindow.close(); }catch(e){}
-        engine.showValidationProblems(problems);
-        return;
+      const admBypass = !!(window.__rpropV52Adm && window.__rpropV52Adm.isActive && window.__rpropV52Adm.isActive());
+      if(!admBypass){
+        const problems = await engine.validateRequired(seq);
+        if(problems && problems.length){
+          try{ if(pdfWindow && !pdfWindow.closed) pdfWindow.close(); }catch(e){}
+          engine.showValidationProblems(problems);
+          return;
+        }
       }
       const name = await engine.getPdfFileNameSafe(seq);
       const bytes = await engine.generatePdfOriginal(seq, name, {
@@ -2766,5 +2795,6 @@
 })();
 </script>
 
+<script src="rproposta.js"></script>
 </body>
 </html>
