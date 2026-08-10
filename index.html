@@ -1980,7 +1980,7 @@
     if(!options.skipCurrentAttachments) await appendAttachments(outDoc);
 
     outDoc.setTitle((pdfFileName || getPdfFileName()).replace(/\.pdf$/i,''));
-    outDoc.setProducer('R-Proposta Fácil v4.1 - PDF final editável');
+    outDoc.setProducer('R-Proposta Fácil v4.3 - PDF final editável');
 
     const payload = await buildEditablePayloadV342(seq, corePageCount, outDoc.getPageCount(), pdfFileName, options);
     const jsonText = JSON.stringify(payload);

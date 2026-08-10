@@ -1337,6 +1337,10 @@ document.addEventListener("DOMContentLoaded", function(){
   window.__termoConsentMirrorTargetV31 = true;
 
   function $(id){ return document.getElementById(id); }
+  function admCanEdit(id){
+    const keys=window.__rpropAdmEditableKeysV43;
+    return !!(window.__rpropAdmActiveV43 && keys && typeof keys.has==='function' && keys.has('id:'+id));
+  }
   function ensureStyle(){
     if(document.getElementById('mirrorLockedStyleV31')) return;
     const st = document.createElement('style');
@@ -1347,6 +1351,10 @@ document.addEventListener("DOMContentLoaded", function(){
   function lockField(id){
     const el = $(id);
     if(!el) return;
+    if(admCanEdit(id)){
+      el.readOnly=false; el.disabled=false; el.tabIndex=0; el.classList.remove('mirror-locked-v31'); el.title='';
+      return;
+    }
     el.readOnly = true;
     el.tabIndex = -1;
     el.classList.add('mirror-locked-v31');
@@ -1358,7 +1366,7 @@ document.addEventListener("DOMContentLoaded", function(){
   }
   function setValue(id, value){
     const el = $(id);
-    if(!el) return;
+    if(!el || admCanEdit(id)) return;
     const next = String(value || '');
     if(el.value !== next) el.value = next;
   }
@@ -2108,7 +2116,7 @@ body.rprop-editor-mode .rprop-editor-conditional-locked{
 
   // Focus/reveal requested by clickable validation list.
   const style=document.createElement('style');
-  style.textContent='.rprop-v51-focus{outline:3px solid #f59e0b!important;box-shadow:0 0 0 5px rgba(245,158,11,.25)!important;transition:box-shadow .2s ease;} body.rprop-adm-frame .rprop-adm-editable{box-shadow:0 0 0 2px rgba(56,189,248,.42)!important;}';
+  style.textContent='.rprop-v51-focus{outline:3px solid #f59e0b!important;box-shadow:0 0 0 5px rgba(245,158,11,.25)!important;transition:box-shadow .2s ease;} body.rprop-adm-frame .rprop-adm-editable, body.rprop-adm-frame label:has(> .rprop-adm-editable){border-color:#38bdf8!important;box-shadow:0 0 0 1px rgba(56,189,248,.30)!important;outline:none!important;transition:border-color .16s ease,box-shadow .16s ease!important;} body.rprop-adm-frame .rprop-adm-editable:focus, body.rprop-adm-frame .rprop-adm-editable:focus-visible, body.rprop-adm-frame label:has(> .rprop-adm-editable:focus), body.rprop-adm-frame label:has(> .rprop-adm-editable:focus-visible){border-color:#0ea5e9!important;box-shadow:0 0 0 3px rgba(14,165,233,.18)!important;outline:none!important;} body.rprop-adm-frame input[data-rprop-adm-locked="1"], body.rprop-adm-frame select[data-rprop-adm-locked="1"], body.rprop-adm-frame textarea[data-rprop-adm-locked="1"], body.rprop-adm-frame label:has(> [data-rprop-adm-locked="1"]){box-shadow:none!important;border-color:#d1d5db!important;}';
   document.head.appendChild(style);
   function reveal(el){
     if(!el) return;
@@ -2152,7 +2160,7 @@ body.rprop-editor-mode .rprop-editor-conditional-locked{
     }
   }
   function applyAdm(keys){
-    adm=true; allowed=new Set(Array.isArray(keys)?keys:[]); document.body.classList.add('rprop-adm-frame');
+    adm=true; allowed=new Set(Array.isArray(keys)?keys:[]); window.__rpropAdmActiveV43=true; window.__rpropAdmEditableKeysV43=new Set(allowed); document.body.classList.add('rprop-adm-frame');
     controls().forEach(el=>{
       remember(el); const ok=allowed.has(key(el)); el.setAttribute('data-rprop-adm-locked',ok?'0':'1'); el.classList.toggle('rprop-adm-editable',ok);
       if(ok){ el.classList.remove('mirror-locked-v31'); const card=el.closest&&el.closest('.optcard'); if(card)card.classList.remove('mirror-locked-v31'); try{el.disabled=false;}catch(e){} try{el.readOnly=false;}catch(e){} el.removeAttribute('aria-disabled'); if(el.tabIndex<0)el.tabIndex=0; }
@@ -2161,13 +2169,13 @@ body.rprop-editor-mode .rprop-editor-conditional-locked{
     refreshAdmConditionals();
   }
   function restoreAdm(){
-    adm=false; document.body.classList.remove('rprop-adm-frame');
+    adm=false; window.__rpropAdmActiveV43=false; window.__rpropAdmEditableKeysV43=new Set(); document.body.classList.remove('rprop-adm-frame');
     snap.forEach((o,el)=>{ try{el.disabled=o.disabled;el.readOnly=o.readOnly;el.tabIndex=o.tabIndex;el.title=o.title;}catch(e){} if(o.aria==null)el.removeAttribute('aria-disabled');else el.setAttribute('aria-disabled',o.aria); el.classList.toggle('mirror-locked-v31',o.mirror); el.classList.remove('rprop-adm-editable'); el.removeAttribute('data-rprop-adm-locked'); const card=el.closest&&el.closest('.optcard'); if(card)card.classList.toggle('mirror-locked-v31',o.cardMirror); });
     snap.clear(); allowed.clear();
   }
   ['pointerdown','mousedown','click','keydown'].forEach(evt=>document.addEventListener(evt,e=>{ if(!adm)return; const el=e.target&&e.target.closest?e.target.closest('[data-rprop-adm-locked="1"]'):null; if(el){ e.preventDefault(); e.stopImmediatePropagation(); } },true));
   document.addEventListener('change',e=>{ if(!adm)return; const el=e.target; if(el&&(el.classList&&el.classList.contains('psel')||el.id==='ativ_prog'||el.id==='ativ_imed')) setTimeout(refreshAdmConditionals,0); },false);
-  window.addEventListener('message',e=>{ if(adm && e.data && e.data.__mirrorV31===true){ e.stopImmediatePropagation(); } },true);
+  // V4.3: espelhamento é controlado campo a campo no ADM; não bloquear todas as mensagens de espelho.
   window.addEventListener('message',e=>{
     const m=e.data; if(!m||typeof m!=='object'||m.__rpropV51!==true)return;
     if(m.type==='ADM_SET_MODE_V51'){ if(m.active)applyAdm(m.editableKeys||[]); else restoreAdm(); try{e.source&&e.source.postMessage({__rpropV51:true,type:'ADM_SET_MODE_V51_RESULT',rid:m.rid,ok:true},'*');}catch(_){} }

@@ -1,4 +1,4 @@
-/* R-Proposta Fácil v4.1 — recursos de validação, status, rascunho protegido e Modo ADM. */
+/* R-Proposta Fácil v4.3 — ADM com espelhamento suspenso nos campos editáveis; visual azul e demais recursos preservados. */
 (() => {
   if (window.__rpropV53Index) return;
   window.__rpropV53Index = true;
@@ -126,6 +126,7 @@
     if(!admActive) return;
     if(admOrigin==='normal') await setAdmOnNormalFrames(false);
     admActive=false; document.body.classList.remove('rprop-adm-active'); selectOverlay.classList.remove('open');
+    if(admOrigin==='normal'){ try{ if(typeof window.__propostaMirrorV31Sync==='function') window.__propostaMirrorV31Sync(); }catch(e){} }
     scheduleStatus(80);
   }
 

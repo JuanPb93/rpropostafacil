@@ -1572,7 +1572,7 @@ body.rprop-editor-mode .rprop-editor-conditional-locked{
 
   // Focus/reveal requested by clickable validation list.
   const style=document.createElement('style');
-  style.textContent='.rprop-v51-focus{outline:3px solid #f59e0b!important;box-shadow:0 0 0 5px rgba(245,158,11,.25)!important;transition:box-shadow .2s ease;} body.rprop-adm-frame .rprop-adm-editable{box-shadow:0 0 0 2px rgba(56,189,248,.42)!important;}';
+  style.textContent='.rprop-v51-focus{outline:3px solid #f59e0b!important;box-shadow:0 0 0 5px rgba(245,158,11,.25)!important;transition:box-shadow .2s ease;} body.rprop-adm-frame .rprop-adm-editable, body.rprop-adm-frame label:has(> .rprop-adm-editable){border-color:#38bdf8!important;box-shadow:0 0 0 1px rgba(56,189,248,.30)!important;outline:none!important;transition:border-color .16s ease,box-shadow .16s ease!important;} body.rprop-adm-frame .rprop-adm-editable:focus, body.rprop-adm-frame .rprop-adm-editable:focus-visible, body.rprop-adm-frame label:has(> .rprop-adm-editable:focus), body.rprop-adm-frame label:has(> .rprop-adm-editable:focus-visible){border-color:#0ea5e9!important;box-shadow:0 0 0 3px rgba(14,165,233,.18)!important;outline:none!important;} body.rprop-adm-frame input[data-rprop-adm-locked="1"], body.rprop-adm-frame select[data-rprop-adm-locked="1"], body.rprop-adm-frame textarea[data-rprop-adm-locked="1"], body.rprop-adm-frame label:has(> [data-rprop-adm-locked="1"]){box-shadow:none!important;border-color:#d1d5db!important;}';
   document.head.appendChild(style);
   function reveal(el){
     if(!el) return;
