@@ -1,4 +1,4 @@
-/* R-Proposta Fácil v4.3 — ADM com espelhamento suspenso nos campos editáveis; visual azul e demais recursos preservados. */
+/* R-Proposta Fácil v6.1 — correção da edição: PDF original usado apenas como fonte de dados; ADM e demais recursos preservados. */
 (() => {
   if (window.__rpropV53Index) return;
   window.__rpropV53Index = true;

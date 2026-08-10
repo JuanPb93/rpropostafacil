@@ -1961,26 +1961,13 @@
     await ensureOutDoc();
     const corePageCount = outDoc.getPageCount();
 
-    // No modo de edição, preserva as páginas anexadas ao PDF original.
-    if(options.originalPdfBytes && Number(options.originalCorePageCount) >= 0){
-      try{
-        const originalDoc = await PDFLib.PDFDocument.load(options.originalPdfBytes, {ignoreEncryption:true});
-        const start = Math.max(0, Math.min(originalDoc.getPageCount(), Number(options.originalCorePageCount || 0)));
-        const indexes = [];
-        for(let i=start;i<originalDoc.getPageCount();i++) indexes.push(i);
-        if(indexes.length){
-          const copied = await outDoc.copyPages(originalDoc, indexes);
-          copied.forEach(page => outDoc.addPage(page));
-        }
-      }catch(e){
-        try{ console.warn('Não foi possível preservar os anexos do PDF original.', e); }catch(_e){}
-      }
-    }
+    // V6.1: o PDF carregado no editor serve exclusivamente para recuperar os dados internos.
+    // Nenhuma página física do arquivo original (página antiga ou anexo) é reutilizada na saída.
 
     if(!options.skipCurrentAttachments) await appendAttachments(outDoc);
 
     outDoc.setTitle((pdfFileName || getPdfFileName()).replace(/\.pdf$/i,''));
-    outDoc.setProducer('R-Proposta Fácil v4.3 - PDF final editável');
+    outDoc.setProducer('R-Proposta Fácil v6.1 - PDF final editável');
 
     const payload = await buildEditablePayloadV342(seq, corePageCount, outDoc.getPageCount(), pdfFileName, options);
     const jsonText = JSON.stringify(payload);
@@ -2723,7 +2710,7 @@
     viewBtn.disabled = true;
     generateBtn.disabled = true;
     activeBtn.textContent = shouldView ? 'ABRINDO...' : 'GERANDO PDF...';
-    setLoading(true, shouldView ? 'Preparando visualização...' : 'Gerando PDF atualizado...', 'Os campos editados estão sendo aplicados e os anexos originais serão preservados.', false);
+    setLoading(true, shouldView ? 'Preparando visualização...' : 'Gerando PDF atualizado...', 'As páginas oficiais estão sendo reconstruídas com os dados atuais. Nenhum anexo do PDF original será incluído.', false);
     try{
       const seq = editorSeq();
       // V3.4.10: garante que os valores atuais do modal alimentem as prévias internas
@@ -2740,8 +2727,6 @@
       }
       const name = await engine.getPdfFileNameSafe(seq);
       const bytes = await engine.generatePdfOriginal(seq, name, {
-        originalPdfBytes,
-        originalCorePageCount:Number(loadedPayload && loadedPayload.corePageCount || 0),
         basePayload:loadedPayload,
         skipCurrentAttachments:true
       });
