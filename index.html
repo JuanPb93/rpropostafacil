@@ -1336,7 +1336,7 @@
     p_data_d4: 'DATA DE NASCIMENTO_4',
     p_local_d4: 'LOCAL DE NASCIMENTO_4',
     p_vinculo_d4: 'VINCULO_4',
-    p_estado_civil_d4: 'ESTADO CIVIL',
+    p_estado_civil_d4: 'ESTADO_CIVIL_4',
     p_email_d4: 'EMAIL_4',
     p_telefone_d4: 'TELEFONE_4',
     p_cns_d4: 'CNS_4',
@@ -1961,13 +1961,13 @@
     await ensureOutDoc();
     const corePageCount = outDoc.getPageCount();
 
-    // V6.1: o PDF carregado no editor serve exclusivamente para recuperar os dados internos.
+    // V7: o PDF carregado no editor serve exclusivamente para recuperar os dados internos.
     // Nenhuma página física do arquivo original (página antiga ou anexo) é reutilizada na saída.
 
     if(!options.skipCurrentAttachments) await appendAttachments(outDoc);
 
     outDoc.setTitle((pdfFileName || getPdfFileName()).replace(/\.pdf$/i,''));
-    outDoc.setProducer('R-Proposta Fácil v6.1 - PDF final editável');
+    outDoc.setProducer('R-Proposta Fácil v7 - PDF final editável');
 
     const payload = await buildEditablePayloadV342(seq, corePageCount, outDoc.getPageCount(), pdfFileName, options);
     const jsonText = JSON.stringify(payload);
