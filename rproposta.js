@@ -1,4 +1,4 @@
-/* R-Proposta Fácil v7 — estado civil do Dependente 4 padronizado; PDF original usado apenas como fonte de dados; ADM e demais recursos preservados. */
+/* R-Proposta Fácil v8 — percentual da taxa com exibição em números inteiros e símbolo % automático; demais recursos preservados. */
 (() => {
   if (window.__rpropV53Index) return;
   window.__rpropV53Index = true;

@@ -1,3 +1,14 @@
+<!--
+=========================================================
+SISTEMA: R-Proposta Fácil
+DESENVOLVEDOR: Juan Pablo de Carvalho Moura Furtado
+AUTOR: Juan Pablo de Carvalho Moura Furtado
+INÍCIO DO DESENVOLVIMENTO: 2026
+IDENTIFICAÇÃO: RESOLVE-RPF-JP-2026
+VERSÃO: 8
+Código desenvolvido originalmente por Juan Pablo de Carvalho Moura Furtado.
+=========================================================
+-->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -1961,13 +1972,13 @@
     await ensureOutDoc();
     const corePageCount = outDoc.getPageCount();
 
-    // V7: o PDF carregado no editor serve exclusivamente para recuperar os dados internos.
+    // V8: o PDF carregado no editor serve exclusivamente para recuperar os dados internos.
     // Nenhuma página física do arquivo original (página antiga ou anexo) é reutilizada na saída.
 
     if(!options.skipCurrentAttachments) await appendAttachments(outDoc);
 
     outDoc.setTitle((pdfFileName || getPdfFileName()).replace(/\.pdf$/i,''));
-    outDoc.setProducer('R-Proposta Fácil v7 - PDF final editável');
+    outDoc.setProducer('R-Proposta Fácil v8 - PDF final editável');
 
     const payload = await buildEditablePayloadV342(seq, corePageCount, outDoc.getPageCount(), pdfFileName, options);
     const jsonText = JSON.stringify(payload);
